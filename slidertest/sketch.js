@@ -21,6 +21,10 @@ let new_feature = 1;
 let randomY = [];
 let numPts = 25;
 
+let duration_s = 1560;
+let time_m;
+let time_s;
+
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
@@ -31,7 +35,7 @@ function setup() {
   createCanvas(canvas_w, canvas_h);
   canvas2 = createGraphics(canvas_w, canvas_h);
   drawFeatureCoarse();
-
+  drawAxisX();
 
   button_load = createFileInput(handleFile);
   button_load.position(320, 0);
@@ -51,7 +55,7 @@ function draw() {
   //drawFeatureCoarse();
   //drawFeatureDetailed();
   //stroke(110);
-  image(canvas2,0,0);
+  image(canvas2,0,0); // display renderer object with static graph
   completion = vid.time() / vid.duration();
   noStroke();
   fill(0,200,0);
@@ -62,6 +66,19 @@ function draw() {
   //  new_feature = 0;
   //}
 }
+//space xTicks duration/20
+function drawAxisX(){
+  canvas2.stroke(250);
+  canvas2.strokeWeight(0.7);
+  canvas2.line(0, 230, canvas_w, 230);
+  for (let i=0; i < 21; i++) { 
+    let xPos = (0 + (i*canvas_w/20));
+    canvas2.line(xPos, 230, xPos, 225);
+
+  }
+}
+
+
 function mousePressed() {
   if (mouseX < 320){
     if (!playing) {
@@ -100,13 +117,13 @@ function getCoarseVals(r){
 }
 
 function drawFeatureCoarse(){
-  canvas2.stroke(150);
+  canvas2.stroke(0,0,255);
   // fill(255);
   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, 320)
-    let py = 230 - map(getCoarseVals(r-1), coarse_ymin, coarse_ymax, 0, 50)
+    let py = 225 - map(getCoarseVals(r-1), coarse_ymin, coarse_ymax, 0, 45)
     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, 320)
-    let y = 230 - map(getCoarseVals(r+coarseness), coarse_ymin, coarse_ymax, 0, 50)
+    let y = 225 - map(getCoarseVals(r+coarseness), coarse_ymin, coarse_ymax, 0, 45)
     // console.log(getCoarseVals(r-1))
     // console.log(getCoarseVals(r));
     canvas2.line(px, py, x, y);
@@ -142,6 +159,15 @@ function drawFeatureSliding(){
       line(px, py, x, y);
     }
   }
+  //Add Current Time
+  fill(150);
+  textSize(16);
+  let time = duration_s*completion;
+  let time_m = ~~(time / 60);
+  let time_s = (time % 60);
+  text(nf(time_m, 2,0), 140, 250); 
+  text(':',160,250)
+  text(nf(time_s, 2,2), 165, 250); 
 }
 function drawFeatureDetailed(){
   stroke(100);
@@ -162,7 +188,6 @@ function drawFakeFeature(){
     let x = i * (width / (numPts-1));
     let y = randomY[i];
     line(px, py, x, y);
-    
     //store the last position
     px = x;
     py = y;
