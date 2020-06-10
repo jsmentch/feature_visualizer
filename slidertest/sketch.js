@@ -1,7 +1,8 @@
 var vid;
 var playing = false;
 var completion = 0;
-let button;
+let button_play;
+let button_load;
 let f_tab;
 
 let canvas_w = 320;
@@ -9,6 +10,7 @@ let canvas_h = 300;
 vid_w = 320;
 vid_h = 180;
 
+let slider_h = 50;
 
 let coarseness = 50; //rename window?
 let coarse_ymax = 0.1;
@@ -27,11 +29,18 @@ function preload() {
 
 function setup() {
   createCanvas(canvas_w, canvas_h);
+  canvas2 = createGraphics(canvas_w, canvas_h);
+  drawFeatureCoarse();
+
+
+  button_load = createFileInput(handleFile);
+  button_load.position(320, 0);
   vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   vid.size(vid_w, vid_h);
   vid.position(0,0);
-  button = createButton('play');
-  button.mousePressed(toggleVid); // attach button listener
+  button_play = createButton('play');
+  button_play.mousePressed(toggleVid); // attach button listener
+
   // for(let i =0; i< numPts; i++){
   //  randomY.push(random(200,300)); 
   // }
@@ -39,13 +48,14 @@ function setup() {
 function draw() {
   background(0);
   //if (new_feature == 1) {
-  drawFeatureCoarse();
+  //drawFeatureCoarse();
   //drawFeatureDetailed();
   //stroke(110);
+  image(canvas2,0,0);
   completion = vid.time() / vid.duration();
   noStroke();
   fill(0,200,0);
-  rect(completion*width, 180, 1, 50); 
+  rect(completion*width, 180, 1, slider_h); 
   //print(completion);
   drawInstantaneous();  
   drawFeatureSliding();
@@ -69,10 +79,10 @@ function mousePressed() {
 function toggleVid() {
   if (playing) {
     vid.pause();
-    button.html('play');
+    button_play.html('play');
   } else {
     vid.loop();
-    button.html('pause');
+    button_play.html('pause');
   }
   playing = !playing;
 }
@@ -90,7 +100,7 @@ function getCoarseVals(r){
 }
 
 function drawFeatureCoarse(){
-  stroke(150);
+  canvas2.stroke(150);
   // fill(255);
   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, 320)
@@ -99,7 +109,7 @@ function drawFeatureCoarse(){
     let y = 230 - map(getCoarseVals(r+coarseness), coarse_ymin, coarse_ymax, 0, 50)
     // console.log(getCoarseVals(r-1))
     // console.log(getCoarseVals(r));
-    line(px, py, x, y);
+    canvas2.line(px, py, x, y);
   }
 }
 
@@ -157,4 +167,14 @@ function drawFakeFeature(){
     px = x;
     py = y;
   } 
+}
+//for input file local movie
+function handleFile(file) {
+  print(file);
+  if (file.type === 'image') {
+    img = createImg(file.data, '');
+    img.hide();
+  } else {
+    img = null;
+  }
 }
