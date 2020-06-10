@@ -5,11 +5,9 @@ let button_play;
 let button_load;
 let f_tab;
 
-
 let column1_w = 320;
 let canvas_h = 300;
 let canvas_w = 400;
-
 
 vid_w = 320;
 vid_h = 180;
@@ -21,8 +19,6 @@ let coarse_ymax = 0.1;
 let coarse_ymin = 0;
 
 let new_feature = 1;
-
-let numPts = 25;
 
 let duration_s = 1560;
 let time_m;
@@ -61,10 +57,6 @@ function setup() {
   vid.position(0,0);
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
-
-  // for(let i =0; i< numPts; i++){
-  //  randomY.push(random(200,300)); 
-  // }
 }
 function draw() {
   background(0);
@@ -86,17 +78,15 @@ function draw() {
 function drawAxisX(){
   canvas2.stroke(250);
   canvas2.strokeWeight(0.7);
-  canvas2.line(0, 230, column1_w, 230);
+  canvas2.line(0, 225, column1_w, 225);
   for (let i=0; i < 21; i++) { 
     let xPos = (0 + (i*column1_w/20));
-    canvas2.line(xPos, 230, xPos, 225);
-
+    canvas2.line(xPos, 225, xPos, 230);
   }
 }
 
-
 function mousePressed() {
-  if (mouseX < 320){
+  if (mouseX < 320 && mouseY > 180 && mouseY < 230){
     if (!playing) {
       //vid.play();
       vid.time((mouseX/column1_w) * vid.duration());
