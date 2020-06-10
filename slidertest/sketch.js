@@ -5,6 +5,9 @@ let button_play;
 let button_load;
 let f_tab;
 
+let canvas2;
+let canvas3;
+
 let column1_w = 320;
 let canvas_h = 300;
 let canvas_w = 400;
@@ -33,8 +36,10 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(canvas_w, canvas_h);
-  canvas2 = createGraphics(canvas_w, canvas_h);
+  createCanvas(canvas_w, canvas_h); //main canvas
+  canvas2 = createGraphics(canvas_w, canvas_h); //renderer for coarse graph, background
+  canvas3 = createGraphics(canvas_w, canvas_h); //renderer for labels, overlay, foreground
+  canvas3.clear();
 
   //draw column1/2 line
   canvas2.stroke(75);
@@ -43,47 +48,47 @@ function setup() {
   canvas2.stroke(100);
   canvas2.strokeWeight(1);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
-
-
+  drawPanelLabels(); // still behind movie - why?
 
   drawFeatureCoarse();
   drawAxisX();
 
-  
   button_load = createFileInput(handleFile);
   button_load.position(canvas_w, 0);
   
-  vid.size(vid_w, vid_h);
+  // vid.size(vid_w, vid_h);
   vid.position(0,0);
+  vid.hide();
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
+  
+
 }
 function draw() {
+  
   background(0);
-  //if (new_feature == 1) {
-  //drawFeatureDetailed();
-  //stroke(110);
+
   image(canvas2,0,0); // display renderer object with static graph
   completion = vid.time() / vid.duration();
   noStroke();
   fill(0,200,0);
   rect(completion*column1_w, 180, 1, slider_h); 
-  //print(completion);
   drawInstantaneous();  
   drawFeatureSliding();
-  //  new_feature = 0;
-  //}
+  image(vid,0,0,vid_w, vid_h);
+  image(canvas3,0,0);
 }
+
+function drawPanelLabels(){
+  canvas3.fill(200);
+  canvas3.textSize(10);
+  canvas3.text("stimulus: Merlin_Movie",0,10);
+  canvas3.text("Coarse Timeline",0,188);
+  canvas3.text("Fine Timeline",0,298);
+}
+
 //space xTicks duration/20
-function drawAxisX(){
-  canvas2.stroke(250);
-  canvas2.strokeWeight(0.7);
-  canvas2.line(0, 225, column1_w, 225);
-  for (let i=0; i < 21; i++) { 
-    let xPos = (0 + (i*column1_w/20));
-    canvas2.line(xPos, 225, xPos, 230);
-  }
-}
+
 
 function mousePressed() {
   if (mouseX < 320 && mouseY > 180 && mouseY < 230){
@@ -186,6 +191,16 @@ function drawFeatureDetailed(){
     let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w)
     let y = 280 - map(f_tab.getString(r, 1), 0, 1, 0, 100)
     line(px, py, x, y);
+  }
+}
+//draw axis labels to canvas2
+function drawAxisX(){
+  canvas2.stroke(250);
+  canvas2.strokeWeight(0.7);
+  canvas2.line(0, 225, column1_w, 225);
+  for (let i=0; i < 21; i++) { 
+    let xPos = (0 + (i*column1_w/20));
+    canvas2.line(xPos, 225, xPos, 230);
   }
 }
 
