@@ -31,6 +31,7 @@ function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
   f_tab = loadTable('assets/as-Alarm.csv', 'csv');
+  //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   let duration_s = vid.duration();
 }
@@ -73,20 +74,38 @@ function draw() {
   noStroke();
   fill(0,200,0);
   rect(completion*column1_w, 180, 1, slider_h); 
-  drawInstantaneous();  
+  
   drawFeatureSliding();
+
+  drawInstantaneous();  
   image(vid,0,0,vid_w, vid_h);
+  drawCurrentTime();
   image(canvas3,0,0);
 }
 
 function drawPanelLabels(){
   canvas3.fill(200);
   canvas3.textSize(10);
-  canvas3.text("stimulus: Merlin_Movie",0,10);
-  canvas3.text("Coarse Timeline",0,188);
-  canvas3.text("Fine Timeline",0,298);
+  canvas3.text("Coarse Timeline",2,188);
+  canvas3.text("Fine Timeline",2,298);
+  canvas3.stroke(0);
+  canvas3.strokeWeight(1)
+  canvas3.fill(255)
+  canvas3.text("stimulus: Merlin_Movie",3,12);
+
 }
 
+function drawCurrentTime() {
+//Add Current Time
+  stroke(0);
+  strokeWeight(2);
+  fill(255);
+  textSize(20);
+  let time = duration_s*completion;
+  let time_m = ~~(time / 60);
+  let time_s = (time % 60);
+  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 30); 
+}
 //space xTicks duration/20
 
 
@@ -143,6 +162,8 @@ function drawFeatureCoarse(){
 
 function drawInstantaneous(){
   // stroke(128);
+  noStroke();
+  fill(0,200,0);
   strokeWeight(1);
   rect(column1_w/2, 230, 1, 70)
   if (isNaN(completion)) {
@@ -162,6 +183,16 @@ function drawFeatureSliding(){
     completion = 0;
   }
   current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount()))) - 50;
+  //Add Current Time
+  stroke(50);
+  strokeWeight(2);
+  fill(75);
+  textSize(25);
+  let time = duration_s*completion;
+  let time_m = ~~(time / 60);
+  let time_s = (time % 60);
+  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
+
   if (current_rowindex > 50 && current_rowindex +50 < f_tab.getRowCount()) {
     for (let i = 0; i < 100; i++) {
       let px = map(completion+i, 0, 100, 0, column1_w)
@@ -171,17 +202,7 @@ function drawFeatureSliding(){
       line(px, py, x, y);
     }
   }
-  //Add Current Time
-  stroke(100);
-  strokeWeight(2);
-  fill(200);
-  textSize(16);
-  let time = duration_s*completion;
-  let time_m = ~~(time / 60);
-  let time_s = (time % 60);
-  text(nf(time_m, 2,0), 140, 250); 
-  text(':',160,250)
-  text(nf(time_s, 2,2), 167, 250); 
+  
 }
 function drawFeatureDetailed(){
   stroke(100);
@@ -197,10 +218,25 @@ function drawFeatureDetailed(){
 function drawAxisX(){
   canvas2.stroke(250);
   canvas2.strokeWeight(0.7);
-  canvas2.line(0, 225, column1_w, 225);
-  for (let i=0; i < 21; i++) { 
+  canvas2.line(0, 225, column1_w, 225); //x bar
+  for (let i=0; i < 11; i++) { 
     let xPos = (0 + (i*column1_w/20));
+//x ticks    
+    canvas2.stroke(250);
+    canvas2.strokeWeight(0.7);
     canvas2.line(xPos, 225, xPos, 230);
+//x tick labels
+    canvas2.textSize(6);
+    canvas2.stroke(250);
+    canvas2.strokeWeight(0);
+    canvas2.fill(255);
+    canvas2.textAlign(CENTER, CENTER);
+
+    canvas2.translate(xPos,235)
+    canvas2.rotate(PI/6);
+    canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
+    canvas2.rotate(-PI/6);
+    canvas2.translate(-xPos,-235)
   }
 }
 
