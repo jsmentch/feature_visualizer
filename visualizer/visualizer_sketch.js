@@ -22,7 +22,7 @@ let coarse_ymin = 0;
 
 let new_feature = 1; //now unused
 
-let duration_s = 1560; //stimulus duration in seconds - updated in setup
+let duration_s = 1560; //stimulus duration in seconds - updated in setup()
 let time_m; //time ms
 let time_s; //time s
 
@@ -43,6 +43,9 @@ function setup() {
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
+
+  //setup feature plot based on min,max
+  getFeatureMinMax();
 
   //draw column1/2 line to background renderer
   canvas2.stroke(75);
@@ -83,7 +86,15 @@ function draw() {
   image(canvas3,0,0);
 }
 
-function drawPanelLabels(){
+function getFeatureMinMax() {
+  feature_vals = f_tab.getColumn(1);
+  min_feat = min(feature_vals);
+  max_feat = max(feature_vals);
+  print(min_feat);
+  print(max_feat);
+  //current_val = f_tab.getString(current_rowindex, 1);
+}
+function drawPanelLabels() {
   canvas3.fill(200);
   canvas3.textSize(10);
   canvas3.text("Coarse Timeline",2,188);
@@ -121,8 +132,8 @@ function mousePressed() {
       vid.time((mouseX/column1_w) * vid.duration());
       //playing = false;
     }
-    print(vid.duration());
-    print((mouseX/column1_w) * vid.duration());
+    //print(vid.duration());
+    //print((mouseX/column1_w) * vid.duration());
   }
 }
 function toggleVid() {
