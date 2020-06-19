@@ -1,17 +1,14 @@
 let vid; //video object
-let playing = false;
-let completion = 0;
 let button_play;
 let button_load;
 let f_tab; //table of feature values
-
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
 
 //dimensions
 let column1_w = 320;
 let canvas_h = 300;
-let canvas_w = 400;
+let canvas_w = 450;
 let vid_w = 320;
 let vid_h = 180;
 let slider_h = 50;
@@ -27,6 +24,8 @@ let max_feat;
 let new_feature = 1; //now unused
 
 //time info
+let playing = false;
+let completion = 0;
 let duration_s = 1560; //stimulus duration in seconds - updated in setup()
 let time_m; //time ms
 let time_s; //time s
@@ -60,9 +59,9 @@ function setup() {
   canvas2.strokeWeight(1);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
   drawPanelLabels();
+  drawMetaData();
 
   drawFeatureDetailed();//
-  //drawFeatureCoarse(); //
   drawAxisX();
 
   button_load = createFileInput(handleFile);
@@ -109,6 +108,14 @@ function drawPanelLabels() {
   canvas3.text("stimulus: Merlin_Movie",3,12);
 }
 
+function drawMetaData() {
+  canvas3.fill(200);
+  canvas3.textSize(10);
+  canvas3.text("feature min: "+String(nf(min_feat,1,2)),326,8);
+  canvas3.text("feature max: "+String(nf(max_feat,1,2)),326,18);
+  canvas3.text("stim duration (s): "+String(duration_s),326,28);
+}
+
 function drawCurrentTime() {
 //Add Current Time
   stroke(0);
@@ -133,8 +140,6 @@ function mousePressed() {
       vid.time((mouseX/column1_w) * vid.duration());
       //playing = false;
     }
-    //print(vid.duration());
-    //print((mouseX/column1_w) * vid.duration());
   }
 }
 
@@ -157,17 +162,6 @@ function getCoarseVals(r){
   }
   let px_avg = sum/(coarseness);
   return px_avg;
-}
-
-function drawFeatureCoarse(){
-  canvas2.stroke(0,0,255);
-  for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
-    let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
-    let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
-    let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
-    canvas2.line(px, py, x, y);
-  }
 }
 
 function drawInstantaneous(){
@@ -212,7 +206,6 @@ function drawFeatureSliding(){
   } 
 }
 
-//not using right now - but can bring back? freed up memory
 function drawFeatureDetailed(){
   canvas2.stroke(0,0,255);
   for (let r = 1; r < f_tab.getRowCount(); r++) {
@@ -223,19 +216,6 @@ function drawFeatureDetailed(){
     canvas2.line(px, py, x, y);
   }
 }
-
-
-// function drawFeatureCoarse(){
-//   canvas2.stroke(0,0,255);
-//   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
-//     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-//     let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
-//     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
-//     let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
-//     canvas2.line(px, py, x, y);
-//   }
-// }
-
 
 //draw axis labels to canvas2
 function drawAxisX(){
@@ -273,3 +253,15 @@ function handleFile(file) {
     img = null;
   }
 }
+
+//draw feature - coarse averaged - not using anymore for now
+// function drawFeatureCoarse(){
+//   canvas2.stroke(0,0,255);
+//   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
+//     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
+//     let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
+//     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
+//     let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
+//     canvas2.line(px, py, x, y);
+//   }
+// }
