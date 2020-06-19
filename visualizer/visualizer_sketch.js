@@ -1,6 +1,6 @@
 let vid; //video object
-var playing = false;
-var completion = 0;
+let playing = false;
+let completion = 0;
 let button_play;
 let button_load;
 let f_tab; //table of feature values
@@ -12,16 +12,21 @@ let canvas3; //graphics renderer for labels, overlay, foreground
 let column1_w = 320;
 let canvas_h = 300;
 let canvas_w = 400;
-vid_w = 320;
-vid_h = 180;
+let vid_w = 320;
+let vid_h = 180;
 let slider_h = 50;
 
+//plotting info
 let coarseness = 50; //rename window?
 let coarse_ymax = 0.1;
 let coarse_ymin = 0;
 
+//feature info
+let min_feat;
+let max_feat;
 let new_feature = 1; //now unused
 
+//time info
 let duration_s = 1560; //stimulus duration in seconds - updated in setup()
 let time_m; //time ms
 let time_s; //time s
@@ -56,7 +61,8 @@ function setup() {
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
   drawPanelLabels();
 
-  drawFeatureCoarse(); //
+  drawFeatureDetailed();//
+  //drawFeatureCoarse(); //
   drawAxisX();
 
   button_load = createFileInput(handleFile);
@@ -90,10 +96,8 @@ function getFeatureMinMax() {
   feature_vals = f_tab.getColumn(1);
   min_feat = min(feature_vals);
   max_feat = max(feature_vals);
-  print(min_feat);
-  print(max_feat);
-  //current_val = f_tab.getString(current_rowindex, 1);
 }
+
 function drawPanelLabels() {
   canvas3.fill(200);
   canvas3.textSize(10);
@@ -103,7 +107,6 @@ function drawPanelLabels() {
   canvas3.strokeWeight(1)
   canvas3.fill(255)
   canvas3.text("stimulus: Merlin_Movie",3,12);
-
 }
 
 function drawCurrentTime() {
@@ -117,8 +120,6 @@ function drawCurrentTime() {
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 30); 
 }
-//space xTicks duration/20
-
 
 function mousePressed() {
   if (mouseX < 320 && mouseY > 180 && mouseY < 230){
@@ -136,6 +137,7 @@ function mousePressed() {
     //print((mouseX/column1_w) * vid.duration());
   }
 }
+
 function toggleVid() {
   if (playing) {
     vid.pause();
@@ -149,33 +151,26 @@ function toggleVid() {
 }
 
 function getCoarseVals(r){
-  //for (let r = 0; r < f_tab.getRowCount()+coarseness; r=r+coarseness) {
   let sum = 0;
   for (let i=0; i < coarseness; i++) {
     sum = sum + float(f_tab.getString(r+i, 1));
   }
   let px_avg = sum/(coarseness);
-  //console.log(px_avg);
   return px_avg;
-  //}
 }
 
 function drawFeatureCoarse(){
   canvas2.stroke(0,0,255);
-  // fill(255);
   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 225 - map(getCoarseVals(r-1), coarse_ymin, coarse_ymax, 0, 45)
+    let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
-    let y = 225 - map(getCoarseVals(r+coarseness), coarse_ymin, coarse_ymax, 0, 45)
-    // console.log(getCoarseVals(r-1))
-    // console.log(getCoarseVals(r));
+    let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
     canvas2.line(px, py, x, y);
   }
 }
 
 function drawInstantaneous(){
-  // stroke(128);
   noStroke();
   fill(0,200,0);
   strokeWeight(1);
@@ -206,7 +201,6 @@ function drawFeatureSliding(){
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
-
   if (current_rowindex > 50 && current_rowindex +50 < f_tab.getRowCount()) {
     for (let i = 0; i < 100; i++) {
       let px = map(completion+i, 0, 100, 0, column1_w)
@@ -215,19 +209,34 @@ function drawFeatureSliding(){
       let y = 300 - map(f_tab.getString(current_rowindex+i+1, 1), 0, 1, 0, 100)
       line(px, py, x, y);
     }
-  }
-  
+  } 
 }
+
+//not using right now - but can bring back? freed up memory
 function drawFeatureDetailed(){
-  stroke(100);
+  canvas2.stroke(0,0,255);
   for (let r = 1; r < f_tab.getRowCount(); r++) {
     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 280 - map(f_tab.getString(r-1, 1), 0, 1, 0, 100)
+    let py = 225 - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 45)
     let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w)
-    let y = 280 - map(f_tab.getString(r, 1), 0, 1, 0, 100)
-    line(px, py, x, y);
+    let y = 225 - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 45)
+    canvas2.line(px, py, x, y);
   }
 }
+
+
+// function drawFeatureCoarse(){
+//   canvas2.stroke(0,0,255);
+//   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
+//     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
+//     let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
+//     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
+//     let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
+//     canvas2.line(px, py, x, y);
+//   }
+// }
+
+
 //draw axis labels to canvas2
 function drawAxisX(){
   canvas2.stroke(250);
