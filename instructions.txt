@@ -1,2 +1,3 @@
-cd p5
-http-server
+Install https://www.npmjs.com/package/http-server
+start a local server in this directory
+navigate to 

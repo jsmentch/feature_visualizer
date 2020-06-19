@@ -1,57 +1,59 @@
-var vid;
+let vid; //video object
 var playing = false;
 var completion = 0;
 let button_play;
 let button_load;
-let f_tab;
+let f_tab; //table of feature values
 
-let canvas2;
-let canvas3;
+let canvas2; //graphics renderer for coarse graph, background
+let canvas3; //graphics renderer for labels, overlay, foreground
 
+//dimensions
 let column1_w = 320;
 let canvas_h = 300;
 let canvas_w = 400;
-
 vid_w = 320;
 vid_h = 180;
-
 let slider_h = 50;
 
 let coarseness = 50; //rename window?
 let coarse_ymax = 0.1;
 let coarse_ymin = 0;
 
-let new_feature = 1;
+let new_feature = 1; //now unused
 
-let duration_s = 1560;
-let time_m;
-let time_s;
+let duration_s = 1560; //stimulus duration in seconds - updated in setup
+let time_m; //time ms
+let time_s; //time s
 
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
   f_tab = loadTable('assets/as-Alarm.csv', 'csv');
-  //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   vid = createVideo(['./assets/stimuli_Merlin.mp4']);
-  let duration_s = vid.duration();
+  // OR
+  // load from openneuro - but breaks slider??
+  //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00003/files/stimuli:Merlin.mp4']);
 }
 
 function setup() {
-  createCanvas(canvas_w, canvas_h); //main canvas
-  canvas2 = createGraphics(canvas_w, canvas_h); //renderer for coarse graph, background
-  canvas3 = createGraphics(canvas_w, canvas_h); //renderer for labels, overlay, foreground
+  //print(vid.duration());
+  let duration_s = vid.duration();
+  createCanvas(canvas_w, canvas_h); // create main canvas
+  canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
+  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
 
-  //draw column1/2 line
+  //draw column1/2 line to background renderer
   canvas2.stroke(75);
   canvas2.strokeWeight(3);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
   canvas2.stroke(100);
   canvas2.strokeWeight(1);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
-  drawPanelLabels(); // still behind movie - why?
+  drawPanelLabels();
 
-  drawFeatureCoarse();
+  drawFeatureCoarse(); //
   drawAxisX();
 
   button_load = createFileInput(handleFile);
@@ -66,9 +68,7 @@ function setup() {
 
 }
 function draw() {
-  
   background(0);
-
   image(canvas2,0,0); // display renderer object with static graph
   completion = vid.time() / vid.duration();
   noStroke();
@@ -121,12 +121,15 @@ function mousePressed() {
       vid.time((mouseX/column1_w) * vid.duration());
       //playing = false;
     }
+    print(vid.duration());
+    print((mouseX/column1_w) * vid.duration());
   }
 }
 function toggleVid() {
   if (playing) {
     vid.pause();
     button_play.html('play');
+    //ellipse(10,10,10,10);  //add a pause sign when paused
   } else {
     vid.loop();
     button_play.html('pause');
@@ -219,7 +222,7 @@ function drawAxisX(){
   canvas2.stroke(250);
   canvas2.strokeWeight(0.7);
   canvas2.line(0, 225, column1_w, 225); //x bar
-  for (let i=0; i < 11; i++) { 
+  for (let i=0; i < 21; i++) { 
     let xPos = (0 + (i*column1_w/20));
 //x ticks    
     canvas2.stroke(250);
@@ -240,7 +243,7 @@ function drawAxisX(){
   }
 }
 
-//for input file local movie
+//for input file local movie - not working yet
 function handleFile(file) {
   print(file);
   if (file.type === 'image') {
