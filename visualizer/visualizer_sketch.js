@@ -1,4 +1,6 @@
 let vid; //video object
+let vid_loaded = false;
+
 let button_play;
 let button_load;
 let f_tab; //table of feature values
@@ -29,10 +31,6 @@ let completion = 0;
 let duration_s = 1560; //stimulus duration in seconds - updated in setup()
 let time_m; //time ms
 let time_s; //time s
-
-
-let vid_loaded = false;
-
 
 function preload() {
   //my table is comma separated value "csv"
@@ -88,11 +86,11 @@ function draw() {
     noStroke();
     fill(0,200,0);
     rect(completion*column1_w, 180, 1, slider_h); 
-    image(canvas3,0,0);
     image(vid,0,0,vid_w, vid_h);
     drawFeatureSliding();
     drawInstantaneous();  
     drawCurrentTime();
+    image(canvas3,0,0);
   }
 }
 
@@ -254,20 +252,15 @@ function drawAxisX(){
 }
 
 function handleVideo(file) {
-  vid_loaded = true;
-  print(file);
-  vid = createVideo(file.data);
-  let duration_s = vid.duration();
-  
-  vid.position(0,0);
-  vid.hide();
- 
-// if (file.type === 'image') {
-  //   img = createImg(file.data, '');
-  //   img.hide();
-  // } else {
-  //   img = null;
-  // }
+  if (file.type === 'video') {
+    vid_loaded = true;
+    print(file);
+    vid = createVideo(file.data);
+    let duration_s = vid.duration();
+    
+    vid.position(0,0);
+    vid.hide();
+  }
 }
 
 //draw feature - coarse averaged - not using anymore for now
