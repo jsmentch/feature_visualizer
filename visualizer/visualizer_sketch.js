@@ -30,19 +30,26 @@ let duration_s = 1560; //stimulus duration in seconds - updated in setup()
 let time_m; //time ms
 let time_s; //time s
 
+
+let vid_loaded = false;
+
+
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
   f_tab = loadTable('assets/as-Alarm.csv', 'csv');
-  vid = createVideo(['./assets/stimuli_Merlin.mp4']);
+  //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   // OR
   // load from openneuro - but breaks slider??
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00003/files/stimuli:Merlin.mp4']);
+  //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
+  //test video
+  //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);
 }
 
 function setup() {
-  //print(vid.duration());
-  let duration_s = vid.duration();
+  // //print(vid.duration());
+  // let duration_s = vid.duration();
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
@@ -64,12 +71,9 @@ function setup() {
   drawFeatureDetailed();//
   drawAxisX();
 
-  button_load = createFileInput(handleFile);
+  button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 0);
-  
-  // vid.size(vid_w, vid_h);
-  vid.position(0,0);
-  vid.hide();
+
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
   
@@ -78,17 +82,17 @@ function setup() {
 function draw() {
   background(0);
   image(canvas2,0,0); // display renderer object with static graph
-  completion = vid.time() / vid.duration();
-  noStroke();
-  fill(0,200,0);
-  rect(completion*column1_w, 180, 1, slider_h); 
-  
-  drawFeatureSliding();
-
-  drawInstantaneous();  
-  image(vid,0,0,vid_w, vid_h);
-  drawCurrentTime();
-  image(canvas3,0,0);
+  if (vid_loaded) {
+    completion = vid.time() / vid.duration();
+    noStroke();
+    fill(0,200,0);
+    rect(completion*column1_w, 180, 1, slider_h); 
+    drawFeatureSliding();
+    drawInstantaneous();  
+    drawCurrentTime();
+    image(canvas3,0,0);
+    image(vid,0,0,vid_w, vid_h);
+  }
 }
 
 function getFeatureMinMax() {
@@ -243,15 +247,21 @@ function drawAxisX(){
   }
 }
 
-//for input file local movie - not working yet
-function handleFile(file) {
+function handleVideo(file) {
+  vid_loaded = true;
   print(file);
-  if (file.type === 'image') {
-    img = createImg(file.data, '');
-    img.hide();
-  } else {
-    img = null;
-  }
+  vid = createVideo(file.data);
+  let duration_s = vid.duration();
+  
+  vid.position(0,0);
+  vid.hide();
+ 
+// if (file.type === 'image') {
+  //   img = createImg(file.data, '');
+  //   img.hide();
+  // } else {
+  //   img = null;
+  // }
 }
 
 //draw feature - coarse averaged - not using anymore for now
