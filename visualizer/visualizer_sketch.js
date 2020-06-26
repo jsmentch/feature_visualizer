@@ -76,22 +76,23 @@ function setup() {
 
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
-  
-
 }
 function draw() {
   background(0);
   image(canvas2,0,0); // display renderer object with static graph
+  if (completion == 1) {
+    toggleVid();
+  }
   if (vid_loaded) {
     completion = vid.time() / vid.duration();
     noStroke();
     fill(0,200,0);
     rect(completion*column1_w, 180, 1, slider_h); 
+    image(canvas3,0,0);
+    image(vid,0,0,vid_w, vid_h);
     drawFeatureSliding();
     drawInstantaneous();  
     drawCurrentTime();
-    image(canvas3,0,0);
-    image(vid,0,0,vid_w, vid_h);
   }
 }
 
@@ -153,7 +154,7 @@ function toggleVid() {
     button_play.html('play');
     //ellipse(10,10,10,10);  //add a pause sign when paused
   } else {
-    vid.loop();
+    vid.play();
     button_play.html('pause');
   }
   playing = !playing;
@@ -172,18 +173,23 @@ function drawInstantaneous(){
   noStroke();
   fill(0,200,0);
   strokeWeight(1);
-  rect(column1_w/2, 230, 1, 70)
+  rect(column1_w/2, 230, 1, 70);
   if (isNaN(completion)) {
     completion = 0;
   }
   current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount())));
-  current_val = f_tab.getString(current_rowindex, 1);
-  current_val = map(current_val,0,1,0,100)
-  stroke(255,0,0);
-  fill(255,0,0)
-  rect(column1_w/2, 300, 1, -current_val);
+  
+  if (current_rowindex<f_tab.getRowCount()){
+    current_val = f_tab.getString(current_rowindex, 1);
+    current_val = map(current_val,0,1,0,100)
+    stroke(255,0,0);
+    fill(255,0,0);
+    rect(column1_w/2, 300, 1, -current_val);
+  }
 }
 
+// this freezes things near the end - fix 
+// cant get string of undefined
 function drawFeatureSliding(){
   stroke(100);
   if (isNaN(completion)) {
@@ -199,7 +205,7 @@ function drawFeatureSliding(){
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
-  if (current_rowindex > 50 && current_rowindex +50 < f_tab.getRowCount()) {
+  if (current_rowindex > 50 && current_rowindex + 100 < f_tab.getRowCount()) {
     for (let i = 0; i < 100; i++) {
       let px = map(completion+i, 0, 100, 0, column1_w)
       let py = 300 - map(f_tab.getString(current_rowindex+i, 1), 0, 1, 0, 100)
