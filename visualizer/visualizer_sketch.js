@@ -1,6 +1,9 @@
 let vid; //video object
 let vid_loaded = false;
 
+let feat_id = 'as-Music'; //feature id
+
+let feat_sel; //selector for feature
 let button_play;
 let button_load;
 let f_tab; //table of feature values
@@ -29,13 +32,14 @@ let new_feature = 1; //now unused
 let playing = false;
 let completion = 0;
 let duration_s = 1560; //stimulus duration in seconds - updated in setup()
-let time_m; //time ms
-let time_s; //time s
+let time = 0; //movie time
+let time_m; //time ms for printing time
+let time_s; //time s for printing time
 
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
-  f_tab = loadTable('assets/as-Alarm.csv', 'csv');
+  f_tab = loadTable('assets/'+feat_id+'.csv', 'csv');
   //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   // OR
   // load from openneuro - but breaks slider??
@@ -68,12 +72,20 @@ function setup() {
 
   drawFeatureDetailed();//
   drawAxisX();
-
+  // video load button
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 0);
-
+  // video play button
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
+  //feature select button
+  sel = createSelect();
+  sel.position(canvas_w, 50);
+  sel.option('as-Alarm');
+  sel.option('as-Music');
+  sel.option('as-Speech');
+  sel.selected('as-Music');
+  sel.changed(featSelect);
 }
 function draw() {
   background(0);
@@ -94,10 +106,24 @@ function draw() {
   }
 }
 
+
+function featSelect() {
+  let feat_id = sel.value();
+  // background(200);
+  // text('It is a ' + item + '!', 50, 50);
+}
+
+
 function getFeatureMinMax() {
   feature_vals = f_tab.getColumn(1);
   min_feat = min(feature_vals);
   max_feat = max(feature_vals);
+}
+
+function getFeatureMinMaxTime() {
+  feature_vals_time = f_tab.getColumn(0);
+  min_feat_time = min(feature_vals_time);
+  max_feat_time = max(feature_vals_time);
 }
 
 function drawPanelLabels() {
@@ -167,6 +193,7 @@ function getCoarseVals(r){
   return px_avg;
 }
 
+//make a bar of the instantaneous feature level
 function drawInstantaneous(){
   noStroke();
   fill(0,200,0);
@@ -194,6 +221,15 @@ function drawFeatureSliding(){
     completion = 0;
   }
   current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount()))) - 50;
+  
+// try to get the feature alignment right based on true movie time +/- offset
+  //current_rowindex = time 
+
+  // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
+  //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
+  // });
+  // print(closest);
+
   //Add Current Time
   stroke(50);
   strokeWeight(2);
@@ -263,6 +299,15 @@ function handleVideo(file) {
   }
 }
 
+
+// class featurePlot {
+//   constructor(fid) {
+//   this.fid = fid
+//   this.f_tab = loadTable('assets/'+fid+'.csv', 'csv');
+
+//   }
+
+// }
 //draw feature - coarse averaged - not using anymore for now
 // function drawFeatureCoarse(){
 //   canvas2.stroke(0,0,255);
