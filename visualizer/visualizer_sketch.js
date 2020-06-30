@@ -1,48 +1,64 @@
 let vid; //video object
-var playing = false;
-var completion = 0;
+let vid_loaded = false;
+
+let feat_id = 'as-Music'; //feature id
+
+let feat_sel; //selector for feature
 let button_play;
 let button_load;
 let f_tab; //table of feature values
-
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
 
 //dimensions
 let column1_w = 320;
 let canvas_h = 300;
-let canvas_w = 400;
-vid_w = 320;
-vid_h = 180;
+let canvas_w = 450;
+let vid_w = 320;
+let vid_h = 180;
 let slider_h = 50;
 
+//plotting info
 let coarseness = 50; //rename window?
 let coarse_ymax = 0.1;
 let coarse_ymin = 0;
 
+//feature info
+let min_feat;
+let max_feat;
 let new_feature = 1; //now unused
 
-let duration_s = 1560; //stimulus duration in seconds - updated in setup
-let time_m; //time ms
-let time_s; //time s
+//time info
+let playing = false;
+let completion = 0;
+let duration_s = 1560; //stimulus duration in seconds - updated in setup()
+let time = 0; //movie time
+let time_m; //time ms for printing time
+let time_s; //time s for printing time
 
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
-  f_tab = loadTable('assets/as-Alarm.csv', 'csv');
-  vid = createVideo(['./assets/stimuli_Merlin.mp4']);
+  f_tab = loadTable('assets/'+feat_id+'.csv', 'csv');
+  //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   // OR
   // load from openneuro - but breaks slider??
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00003/files/stimuli:Merlin.mp4']);
+  //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
+  //test video
+  //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);
 }
 
 function setup() {
-  //print(vid.duration());
-  let duration_s = vid.duration();
+  // //print(vid.duration());
+  // let duration_s = vid.duration();
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
+
+  //setup feature plot based on min,max
+  getFeatureMinMax();
 
   //draw column1/2 line to background renderer
   canvas2.stroke(75);
@@ -52,38 +68,65 @@ function setup() {
   canvas2.strokeWeight(1);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
   drawPanelLabels();
+  drawMetaData();
 
-  drawFeatureCoarse(); //
+  drawFeatureDetailed();//
   drawAxisX();
-
-  button_load = createFileInput(handleFile);
+  // video load button
+  button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 0);
-  
-  // vid.size(vid_w, vid_h);
-  vid.position(0,0);
-  vid.hide();
+  // video play button
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
-  
-
+  //feature select button
+  sel = createSelect();
+  sel.position(canvas_w, 50);
+  sel.option('as-Alarm');
+  sel.option('as-Music');
+  sel.option('as-Speech');
+  sel.selected('as-Music');
+  sel.changed(featSelect);
 }
 function draw() {
   background(0);
   image(canvas2,0,0); // display renderer object with static graph
-  completion = vid.time() / vid.duration();
-  noStroke();
-  fill(0,200,0);
-  rect(completion*column1_w, 180, 1, slider_h); 
-  
-  drawFeatureSliding();
-
-  drawInstantaneous();  
-  image(vid,0,0,vid_w, vid_h);
-  drawCurrentTime();
-  image(canvas3,0,0);
+  if (completion == 1) {
+    toggleVid();
+  }
+  if (vid_loaded) {
+    completion = vid.time() / vid.duration();
+    noStroke();
+    fill(0,200,0);
+    rect(completion*column1_w, 180, 1, slider_h); 
+    image(vid,0,0,vid_w, vid_h);
+    drawFeatureSliding();
+    drawInstantaneous();  
+    drawCurrentTime();
+    image(canvas3,0,0);
+  }
 }
 
-function drawPanelLabels(){
+
+function featSelect() {
+  let feat_id = sel.value();
+  // background(200);
+  // text('It is a ' + item + '!', 50, 50);
+}
+
+
+function getFeatureMinMax() {
+  feature_vals = f_tab.getColumn(1);
+  min_feat = min(feature_vals);
+  max_feat = max(feature_vals);
+}
+
+function getFeatureMinMaxTime() {
+  feature_vals_time = f_tab.getColumn(0);
+  min_feat_time = min(feature_vals_time);
+  max_feat_time = max(feature_vals_time);
+}
+
+function drawPanelLabels() {
   canvas3.fill(200);
   canvas3.textSize(10);
   canvas3.text("Coarse Timeline",2,188);
@@ -92,7 +135,14 @@ function drawPanelLabels(){
   canvas3.strokeWeight(1)
   canvas3.fill(255)
   canvas3.text("stimulus: Merlin_Movie",3,12);
+}
 
+function drawMetaData() {
+  canvas3.fill(200);
+  canvas3.textSize(10);
+  canvas3.text("feature min: "+String(nf(min_feat,1,2)),326,8);
+  canvas3.text("feature max: "+String(nf(max_feat,1,2)),326,18);
+  canvas3.text("stim duration (s): "+String(duration_s),326,28);
 }
 
 function drawCurrentTime() {
@@ -106,8 +156,6 @@ function drawCurrentTime() {
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 30); 
 }
-//space xTicks duration/20
-
 
 function mousePressed() {
   if (mouseX < 320 && mouseY > 180 && mouseY < 230){
@@ -121,71 +169,67 @@ function mousePressed() {
       vid.time((mouseX/column1_w) * vid.duration());
       //playing = false;
     }
-    print(vid.duration());
-    print((mouseX/column1_w) * vid.duration());
   }
 }
+
 function toggleVid() {
   if (playing) {
     vid.pause();
     button_play.html('play');
     //ellipse(10,10,10,10);  //add a pause sign when paused
   } else {
-    vid.loop();
+    vid.play();
     button_play.html('pause');
   }
   playing = !playing;
 }
 
 function getCoarseVals(r){
-  //for (let r = 0; r < f_tab.getRowCount()+coarseness; r=r+coarseness) {
   let sum = 0;
   for (let i=0; i < coarseness; i++) {
     sum = sum + float(f_tab.getString(r+i, 1));
   }
   let px_avg = sum/(coarseness);
-  //console.log(px_avg);
   return px_avg;
-  //}
 }
 
-function drawFeatureCoarse(){
-  canvas2.stroke(0,0,255);
-  // fill(255);
-  for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
-    let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 225 - map(getCoarseVals(r-1), coarse_ymin, coarse_ymax, 0, 45)
-    let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
-    let y = 225 - map(getCoarseVals(r+coarseness), coarse_ymin, coarse_ymax, 0, 45)
-    // console.log(getCoarseVals(r-1))
-    // console.log(getCoarseVals(r));
-    canvas2.line(px, py, x, y);
-  }
-}
-
+//make a bar of the instantaneous feature level
 function drawInstantaneous(){
-  // stroke(128);
   noStroke();
   fill(0,200,0);
   strokeWeight(1);
-  rect(column1_w/2, 230, 1, 70)
+  rect(column1_w/2, 230, 1, 70);
   if (isNaN(completion)) {
     completion = 0;
   }
   current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount())));
-  current_val = f_tab.getString(current_rowindex, 1);
-  current_val = map(current_val,0,1,0,100)
-  stroke(255,0,0);
-  fill(255,0,0)
-  rect(column1_w/2, 300, 1, -current_val);
+  
+  if (current_rowindex<f_tab.getRowCount()){
+    current_val = f_tab.getString(current_rowindex, 1);
+    current_val = map(current_val,0,1,0,100)
+    stroke(255,0,0);
+    fill(255,0,0);
+    rect(column1_w/2, 300, 1, -current_val);
+  }
 }
 
+// this freezes things near the end - fix 
+// cant get string of undefined
 function drawFeatureSliding(){
   stroke(100);
   if (isNaN(completion)) {
     completion = 0;
   }
   current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount()))) - 50;
+  
+// try to get the feature alignment right based on true movie time +/- offset
+  //current_rowindex = time 
+
+  // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
+  //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
+  // });
+  // print(closest);
+
   //Add Current Time
   stroke(50);
   strokeWeight(2);
@@ -195,8 +239,7 @@ function drawFeatureSliding(){
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
-
-  if (current_rowindex > 50 && current_rowindex +50 < f_tab.getRowCount()) {
+  if (current_rowindex > 50 && current_rowindex + 100 < f_tab.getRowCount()) {
     for (let i = 0; i < 100; i++) {
       let px = map(completion+i, 0, 100, 0, column1_w)
       let py = 300 - map(f_tab.getString(current_rowindex+i, 1), 0, 1, 0, 100)
@@ -204,19 +247,20 @@ function drawFeatureSliding(){
       let y = 300 - map(f_tab.getString(current_rowindex+i+1, 1), 0, 1, 0, 100)
       line(px, py, x, y);
     }
-  }
-  
+  } 
 }
+
 function drawFeatureDetailed(){
-  stroke(100);
+  canvas2.stroke(0,0,255);
   for (let r = 1; r < f_tab.getRowCount(); r++) {
     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 280 - map(f_tab.getString(r-1, 1), 0, 1, 0, 100)
+    let py = 225 - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 45)
     let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w)
-    let y = 280 - map(f_tab.getString(r, 1), 0, 1, 0, 100)
-    line(px, py, x, y);
+    let y = 225 - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 45)
+    canvas2.line(px, py, x, y);
   }
 }
+
 //draw axis labels to canvas2
 function drawAxisX(){
   canvas2.stroke(250);
@@ -243,13 +287,35 @@ function drawAxisX(){
   }
 }
 
-//for input file local movie - not working yet
-function handleFile(file) {
-  print(file);
-  if (file.type === 'image') {
-    img = createImg(file.data, '');
-    img.hide();
-  } else {
-    img = null;
+function handleVideo(file) {
+  if (file.type === 'video') {
+    vid_loaded = true;
+    print(file);
+    vid = createVideo(file.data);
+    let duration_s = vid.duration();
+    
+    vid.position(0,0);
+    vid.hide();
   }
 }
+
+
+// class featurePlot {
+//   constructor(fid) {
+//   this.fid = fid
+//   this.f_tab = loadTable('assets/'+fid+'.csv', 'csv');
+
+//   }
+
+// }
+//draw feature - coarse averaged - not using anymore for now
+// function drawFeatureCoarse(){
+//   canvas2.stroke(0,0,255);
+//   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
+//     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
+//     let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
+//     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
+//     let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
+//     canvas2.line(px, py, x, y);
+//   }
+// }
