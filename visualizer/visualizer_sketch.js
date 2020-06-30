@@ -1,7 +1,7 @@
 let vid; //video object
 let vid_loaded = false;
 
-let feat_id = 'as-Music'; //feature id
+let f_id = 'as-Music'; //feature id
 
 let feat_sel; //selector for feature
 let button_play;
@@ -39,7 +39,7 @@ let time_s; //time s for printing time
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
-  f_tab = loadTable('assets/'+feat_id+'.csv', 'csv');
+  //f_tab = loadTable('assets/'+f_id+'.csv', 'csv');
   //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
   // OR
   // load from openneuro - but breaks slider??
@@ -57,8 +57,8 @@ function setup() {
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
 
-  //setup feature plot based on min,max
-  getFeatureMinMax();
+
+  
 
   //draw column1/2 line to background renderer
   canvas2.stroke(75);
@@ -68,9 +68,6 @@ function setup() {
   canvas2.strokeWeight(1);
   canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
   drawPanelLabels();
-  drawMetaData();
-
-  drawFeatureDetailed();//
   drawAxisX();
   // video load button
   button_load = createFileInput(handleVideo);
@@ -86,10 +83,16 @@ function setup() {
   sel.option('as-Speech');
   sel.selected('as-Music');
   sel.changed(featSelect);
+
+  // Set Up feature(s)
+  feat1 = new featurePlot(f_id); //load music feature by default
+  //setup feature plot based on min,max
+  feat1.drawFeatureDetailed();
+  feat1.drawMetaData();
+
 }
 function draw() {
   background(0);
-  image(canvas2,0,0); // display renderer object with static graph
   if (completion == 1) {
     toggleVid();
   }
@@ -99,8 +102,9 @@ function draw() {
     fill(0,200,0);
     rect(completion*column1_w, 180, 1, slider_h); 
     image(vid,0,0,vid_w, vid_h);
-    drawFeatureSliding();
-    drawInstantaneous();  
+    image(canvas2,0,0); // display renderer object with static graph
+    feat1.drawFeatureSliding();
+    feat1.drawInstantaneous();  
     drawCurrentTime();
     image(canvas3,0,0);
   }
@@ -108,22 +112,9 @@ function draw() {
 
 
 function featSelect() {
-  let feat_id = sel.value();
+  f_id = sel.value();
   // background(200);
   // text('It is a ' + item + '!', 50, 50);
-}
-
-
-function getFeatureMinMax() {
-  feature_vals = f_tab.getColumn(1);
-  min_feat = min(feature_vals);
-  max_feat = max(feature_vals);
-}
-
-function getFeatureMinMaxTime() {
-  feature_vals_time = f_tab.getColumn(0);
-  min_feat_time = min(feature_vals_time);
-  max_feat_time = max(feature_vals_time);
 }
 
 function drawPanelLabels() {
@@ -135,14 +126,6 @@ function drawPanelLabels() {
   canvas3.strokeWeight(1)
   canvas3.fill(255)
   canvas3.text("stimulus: Merlin_Movie",3,12);
-}
-
-function drawMetaData() {
-  canvas3.fill(200);
-  canvas3.textSize(10);
-  canvas3.text("feature min: "+String(nf(min_feat,1,2)),326,8);
-  canvas3.text("feature max: "+String(nf(max_feat,1,2)),326,18);
-  canvas3.text("stim duration (s): "+String(duration_s),326,28);
 }
 
 function drawCurrentTime() {
@@ -193,73 +176,13 @@ function getCoarseVals(r){
   return px_avg;
 }
 
-//make a bar of the instantaneous feature level
-function drawInstantaneous(){
-  noStroke();
-  fill(0,200,0);
-  strokeWeight(1);
-  rect(column1_w/2, 230, 1, 70);
-  if (isNaN(completion)) {
-    completion = 0;
-  }
-  current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount())));
-  
-  if (current_rowindex<f_tab.getRowCount()){
-    current_val = f_tab.getString(current_rowindex, 1);
-    current_val = map(current_val,0,1,0,100)
-    stroke(255,0,0);
-    fill(255,0,0);
-    rect(column1_w/2, 300, 1, -current_val);
-  }
-}
+
 
 // this freezes things near the end - fix 
 // cant get string of undefined
-function drawFeatureSliding(){
-  stroke(100);
-  if (isNaN(completion)) {
-    completion = 0;
-  }
-  current_rowindex = round(map(completion, 0, 1, 0, float(f_tab.getRowCount()))) - 50;
-  
-// try to get the feature alignment right based on true movie time +/- offset
-  //current_rowindex = time 
 
-  // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
-  //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
-  // });
-  // print(closest);
 
-  //Add Current Time
-  stroke(50);
-  strokeWeight(2);
-  fill(75);
-  textSize(25);
-  let time = duration_s*completion;
-  let time_m = ~~(time / 60);
-  let time_s = (time % 60);
-  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
-  if (current_rowindex > 50 && current_rowindex + 100 < f_tab.getRowCount()) {
-    for (let i = 0; i < 100; i++) {
-      let px = map(completion+i, 0, 100, 0, column1_w)
-      let py = 300 - map(f_tab.getString(current_rowindex+i, 1), 0, 1, 0, 100)
-      let x = map(completion+i+1, 0, 100, 0, column1_w)
-      let y = 300 - map(f_tab.getString(current_rowindex+i+1, 1), 0, 1, 0, 100)
-      line(px, py, x, y);
-    }
-  } 
-}
 
-function drawFeatureDetailed(){
-  canvas2.stroke(0,0,255);
-  for (let r = 1; r < f_tab.getRowCount(); r++) {
-    let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-    let py = 225 - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 45)
-    let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w)
-    let y = 225 - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 45)
-    canvas2.line(px, py, x, y);
-  }
-}
 
 //draw axis labels to canvas2
 function drawAxisX(){
@@ -300,14 +223,100 @@ function handleVideo(file) {
 }
 
 
-// class featurePlot {
-//   constructor(fid) {
-//   this.fid = fid
-//   this.f_tab = loadTable('assets/'+fid+'.csv', 'csv');
+class featurePlot {
+  constructor(f_id) {
+  this.f_id = f_id;
+  this.f_tab = loadTable('assets/'+this.f_id+'.csv', 'csv');
+  //getMinMaxTime
+  this.feature_vals_time = this.f_tab.getColumn(0);
+  this.min_feat_time = min(this.feature_vals_time);
+  this.max_feat_time = max(this.feature_vals_time);
+  // getMinMax
+  this.feature_vals = this.f_tab.getColumn(1);
+  this.min_feat = min(this.feature_vals);
+  this.max_feat = max(this.feature_vals);
+  }
 
-//   }
+  // getMinMaxTime() {
+  // }
 
-// }
+  // getMinMax() {
+  // }
+
+  drawFeatureDetailed(){
+    canvas2.stroke(0,0,255);
+    for (let r = 1; r < this.f_tab.getRowCount(); r++) {
+      let px = map(this.f_tab.getString(r-1, 0), 0, 1539, 0, column1_w);
+      let py = 225 - map(this.f_tab.getString(r-1, 1), this.min_feat, this.max_feat, 0, 45);
+      let x = map(this.f_tab.getString(r, 0), 0, 1539, 0, column1_w);
+      let y = 225 - map(this.f_tab.getString(r, 1), this.min_feat, this.max_feat, 0, 45);
+      canvas2.line(px, py, x, y);
+    }
+  }
+
+  drawFeatureSliding(){
+    stroke(100);
+    if (isNaN(completion)) {
+      completion = 0;
+    }
+    let current_rowindex = round(map(completion, 0, 1, 0, float(this.f_tab.getRowCount()))) - 50;
+    
+  // try to get the feature alignment right based on true movie time +/- offset
+    //current_rowindex = time 
+
+    // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
+    //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
+    // });
+    // print(closest);
+
+    //Add Current Time
+    stroke(50);
+    strokeWeight(2);
+    fill(75);
+    textSize(25);
+    let time = duration_s*completion;
+    let time_m = ~~(time / 60);
+    let time_s = (time % 60);
+    text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
+    if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
+      for (let i = 0; i < 100; i++) {
+        let px = map(completion+i, 0, 100, 0, column1_w);
+        let py = 300 - map(this.f_tab.getString(current_rowindex+i, 1), 0, 1, 0, 100);
+        let x = map(completion+i+1, 0, 100, 0, column1_w);
+        let y = 300 - map(this.f_tab.getString(current_rowindex+i+1, 1), 0, 1, 0, 100);
+        line(px, py, x, y);
+      }
+    } 
+  }
+
+  //make a bar of the instantaneous feature level
+  drawInstantaneous(){
+    noStroke();
+    fill(0,200,0);
+    strokeWeight(1);
+    rect(column1_w/2, 230, 1, 70);
+    if (isNaN(completion)) {
+      completion = 0;
+    }
+    let current_rowindex = round(map(completion, 0, 1, 0, float(this.f_tab.getRowCount())));
+    
+    if (current_rowindex<this.f_tab.getRowCount()){
+      let current_val = this.f_tab.getString(current_rowindex, 1);
+      current_val = map(current_val,0,1,0,100)
+      stroke(255,0,0);
+      fill(255,0,0);
+      rect(column1_w/2, 300, 1, -current_val);
+    }
+  }
+
+  drawMetaData() {
+    canvas3.fill(200);
+    canvas3.textSize(10);
+    canvas3.text("feature min: "+String(nf(this.min_feat,1,2)),326,8);
+    canvas3.text("feature max: "+String(nf(this.max_feat,1,2)),326,18);
+    canvas3.text("stim duration (s): "+String(duration_s),326,28);
+  }
+}
 //draw feature - coarse averaged - not using anymore for now
 // function drawFeatureCoarse(){
 //   canvas2.stroke(0,0,255);
