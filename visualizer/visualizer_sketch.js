@@ -75,8 +75,31 @@ function setup() {
   sel = createSelect();
   sel.position(canvas_w, 50);
   sel.option('as-Alarm');
+  sel.option('as-Animal');
+  sel.option('as-Domestic animals pets');
+  sel.option('as-Engine');
+  sel.option('as-Explosion');
+  sel.option('as-Fire');
+  sel.option('as-Glass');
+  sel.option('as-Hands');
+  sel.option('as-Heart sounds heartbeat');
+  sel.option('as-Liquid');
+  sel.option('as-Livestock farm animals working animals');
+  sel.option('as-Mechanisms');
   sel.option('as-Music');
-  sel.option('as-Speech');
+  sel.option('as-Musical instrument');
+  sel.option('as-Noise');
+  sel.option('as-Silence');
+  sel.option('as-Thunderstorm');
+  sel.option('as-Tools');
+  sel.option('as-Vehicle');
+  sel.option('as-Water');
+  sel.option('as-Whistling');
+  sel.option('as-Wild animals');
+  sel.option('as-Wind');
+  sel.option('as-Wood');
+  sel.option('as-Music');
+  //sel.option('as-Speech');
   sel.selected('as-Music');
   sel.changed(featSelect);
 
@@ -115,8 +138,12 @@ function draw() {
 
 function featSelect() {
   f_id = sel.value();
+  canvas3.clear();
+  canvas2.clear();
   // background(200);
-  // text('It is a ' + item + '!', 50, 50);
+  canvas3.text('f_id = ' + f_id + '!', 100, 100);
+  feat1 = new Feature(f_id); //load music feature by default
+  feat1.loadFeatTable()
 }
 
 function drawColumnLines() {
@@ -242,6 +269,9 @@ function handleVideo(file) {
 function testCallback(){
     print(feat1.f_tab.getColumn(0));
 }
+
+
+
 
 class Feature {
   constructor(f_id) {
