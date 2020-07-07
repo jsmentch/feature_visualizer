@@ -74,33 +74,39 @@ function setup() {
   //feature select button
   sel = createSelect();
   sel.position(canvas_w, 50);
-  sel.option('as-Alarm');
-  sel.option('as-Animal');
-  sel.option('as-Domestic animals pets');
-  sel.option('as-Engine');
-  sel.option('as-Explosion');
-  sel.option('as-Fire');
-  sel.option('as-Glass');
-  sel.option('as-Hands');
-  sel.option('as-Heart sounds heartbeat');
-  sel.option('as-Liquid');
-  sel.option('as-Livestock farm animals working animals');
-  sel.option('as-Mechanisms');
-  sel.option('as-Music');
-  sel.option('as-Musical instrument');
-  sel.option('as-Noise');
-  sel.option('as-Silence');
-  sel.option('as-Thunderstorm');
-  sel.option('as-Tools');
-  sel.option('as-Vehicle');
-  sel.option('as-Water');
-  sel.option('as-Whistling');
-  sel.option('as-Wild animals');
-  sel.option('as-Wind');
-  sel.option('as-Wood');
-  sel.option('as-Music');
-  //sel.option('as-Speech');
+  
+  // list all of the csv files... do this with the api? node.js? a file with all of the names? 
+  let feat_names = ['as-Alarm',
+  'as-Animal',
+  'as-Domestic animals pets',
+  'as-Engine',
+  'as-Explosion',
+  'as-Fire',
+  'as-Glass',
+  'as-Hands',
+  'as-Heart sounds heartbeat',
+  'as-Liquid',
+  'as-Livestock farm animals working animals',
+  'as-Mechanisms',
+  'as-Music',
+  'as-Musical instrument',
+  'as-Noise',
+  'as-Silence',
+  'as-Thunderstorm',
+  'as-Tools',
+  'as-Vehicle',
+  'as-Water',
+  'as-Whistling',
+  'as-Wild animals',
+  'as-Wind',
+  'as-Wood',
+  'as-Music'];
+  // make an option for all of the names in the array
+  for (let i = 0; i < feat_names.length; i++) {
+    sel.option(feat_names[i]);
+  }
   sel.selected('as-Music');
+
   sel.changed(featSelect);
 
   // Set Up feature(s)
