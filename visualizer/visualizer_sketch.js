@@ -2,11 +2,10 @@ let vid; //video object
 let vid_loaded = false;
 
 let f_id = 'as-Music'; //feature id
-
 let feat_sel; //selector for feature
 let button_play;
 let button_load;
-let f_tab; //table of feature values
+//let f_tab; //table of feature values
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
 
@@ -31,10 +30,12 @@ let new_feature = 1; //now unused
 //time info
 let playing = false;
 let completion = 0;
-let duration_s = 1560; //stimulus duration in seconds - updated in setup()
+let duration_s = 1513; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
+
+
 
 function preload() {
   //my table is comma separated value "csv"
@@ -46,10 +47,16 @@ function preload() {
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00003/files/stimuli:Merlin.mp4']);
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
   //test video
-  //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);
+  //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
 }
 
 function setup() {
+  // //getMinMaxTime
+  // print(f_tab.getColumn(0));
+  // let feature_vals_time = f_tab.getColumn(0);
+  // let min_feat_time = min(f_tab.getColumn(0));
+  // //print(min_feat_time);
+  // let max_feat_time = max(f_tab.getColumn(0));
   // //print(vid.duration());
   // let duration_s = vid.duration();
   createCanvas(canvas_w, canvas_h); // create main canvas
@@ -57,18 +64,7 @@ function setup() {
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
 
-
   
-
-  //draw column1/2 line to background renderer
-  canvas2.stroke(75);
-  canvas2.strokeWeight(3);
-  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
-  canvas2.stroke(100);
-  canvas2.strokeWeight(1);
-  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
-  drawPanelLabels();
-  drawAxisX();
   // video load button
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 0);
@@ -85,10 +81,17 @@ function setup() {
   sel.changed(featSelect);
 
   // Set Up feature(s)
-  feat1 = new featurePlot(f_id); //load music feature by default
+  feat1 = new Feature(f_id); //load music feature by default
+  feat1.loadFeatTable()
+
+  //draw column1/2 line to background renderer
+  drawColumnLines();
+  drawPanelLabels();
+  drawAxisX();
+//  feat1.loadFeatInfo();
   //setup feature plot based on min,max
-  feat1.drawFeatureDetailed();
-  feat1.drawMetaData();
+//  feat1.drawFeatureDetailed();
+//  feat1.drawMetaData();
 
 }
 function draw() {
@@ -97,24 +100,32 @@ function draw() {
     toggleVid();
   }
   if (vid_loaded) {
+    image(canvas2,0,0); // display renderer object with static graph
     completion = vid.time() / vid.duration();
     noStroke();
     fill(0,200,0);
     rect(completion*column1_w, 180, 1, slider_h); 
-    image(vid,0,0,vid_w, vid_h);
-    image(canvas2,0,0); // display renderer object with static graph
+    image(vid,0,0,vid_w, vid_h); //display video
     feat1.drawFeatureSliding();
     feat1.drawInstantaneous();  
     drawCurrentTime();
-    image(canvas3,0,0);
+    image(canvas3,0,0); //display overlay canvas
   }
 }
-
 
 function featSelect() {
   f_id = sel.value();
   // background(200);
   // text('It is a ' + item + '!', 50, 50);
+}
+
+function drawColumnLines() {
+  canvas2.stroke(75);
+  canvas2.strokeWeight(3);
+  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
+  canvas2.stroke(100);
+  canvas2.strokeWeight(1);
+  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
 }
 
 function drawPanelLabels() {
@@ -189,14 +200,14 @@ function drawAxisX(){
   canvas2.stroke(250);
   canvas2.strokeWeight(0.7);
   canvas2.line(0, 225, column1_w, 225); //x bar
-  for (let i=0; i < 21; i++) { 
-    let xPos = (0 + (i*column1_w/20));
+  for (let i=0; i < 11; i++) { 
+    let xPos = (0 + (i*column1_w/10));
 //x ticks    
     canvas2.stroke(250);
     canvas2.strokeWeight(0.7);
     canvas2.line(xPos, 225, xPos, 230);
 //x tick labels
-    canvas2.textSize(6);
+    canvas2.textSize(10);
     canvas2.stroke(250);
     canvas2.strokeWeight(0);
     canvas2.fill(255);
@@ -204,7 +215,13 @@ function drawAxisX(){
 
     canvas2.translate(xPos,235)
     canvas2.rotate(PI/6);
-    canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
+
+    cur_time = i*duration_s/10
+
+    secondsToMinSec(cur_time)
+    canvas2.text(secondsToMinSec(cur_time),2,0);
+    //canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
+
     canvas2.rotate(-PI/6);
     canvas2.translate(-xPos,-235)
   }
@@ -222,19 +239,68 @@ function handleVideo(file) {
   }
 }
 
+function testCallback(){
+    print(feat1.f_tab.getColumn(0));
+}
 
-class featurePlot {
+class Feature {
   constructor(f_id) {
   this.f_id = f_id;
-  this.f_tab = loadTable('assets/'+this.f_id+'.csv', 'csv');
-  //getMinMaxTime
-  this.feature_vals_time = this.f_tab.getColumn(0);
-  this.min_feat_time = min(this.feature_vals_time);
-  this.max_feat_time = max(this.feature_vals_time);
-  // getMinMax
-  this.feature_vals = this.f_tab.getColumn(1);
-  this.min_feat = min(this.feature_vals);
-  this.max_feat = max(this.feature_vals);
+  print(this.f_id);
+  }
+
+  loadFeatTable(){
+    this.f_tab = loadTable('./assets/' + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+  }
+
+
+  testCallback(response){
+    // print('loaded?');
+    // print(response.getColumn(0));
+  } 
+
+
+  loadInfoFromTable(loadedtable){
+    let f_tab = loadedtable;
+    print('loaded?');
+    print(loadedtable.getColumn(0));
+    //getMinMaxTime
+    //this.feature_vals_time = loadedtable.getColumn(0);
+    //print(this.feature_vals_time[1]);
+    print(min(loadedtable.getColumn(0)));
+    // let min_feat_time = min(loadedtable.getColumn(0));
+    // let max_feat_time = max(loadedtable.getColumn(0));
+    print(loadedtable.getColumn(1));
+    // getMinMax
+    let feature_vals = loadedtable.getColumn(1);
+    let min_feat = min(feature_vals);
+    let max_feat = max(feature_vals);
+
+
+
+    //drawFeatureDetailed(){
+    canvas2.fill(0,0,200);
+    canvas2.stroke(0,0,200);
+    canvas2.strokeWeight(1);
+    for (let r = 1; r < f_tab.getRowCount(); r++) {
+      // print(f_tab.getRowCount());
+      let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w);
+      let py = 225 - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 45);
+      let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
+      let y = 225 - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 45);
+      canvas2.line(px, py, x, y);
+    }
+    //}
+
+
+    //drawMetaData() {
+    canvas3.fill(200);
+    canvas3.textSize(10);
+    canvas3.text("feature min: "+String(nf(min_feat,1,2)),326,8);
+    canvas3.text("feature max: "+String(nf(max_feat,1,2)),326,18);
+    //canvas3.text("stim duration (s): "+String(duration_s),326,28);
+    canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),326,28);
+    //}
   }
 
   // getMinMaxTime() {
@@ -243,16 +309,16 @@ class featurePlot {
   // getMinMax() {
   // }
 
-  drawFeatureDetailed(){
-    canvas2.stroke(0,0,255);
-    for (let r = 1; r < this.f_tab.getRowCount(); r++) {
-      let px = map(this.f_tab.getString(r-1, 0), 0, 1539, 0, column1_w);
-      let py = 225 - map(this.f_tab.getString(r-1, 1), this.min_feat, this.max_feat, 0, 45);
-      let x = map(this.f_tab.getString(r, 0), 0, 1539, 0, column1_w);
-      let y = 225 - map(this.f_tab.getString(r, 1), this.min_feat, this.max_feat, 0, 45);
-      canvas2.line(px, py, x, y);
-    }
-  }
+  // drawFeatureDetailed(){
+  //   canvas2.stroke(0,0,255);
+  //   for (let r = 1; r < this.f_tab.getRowCount(); r++) {
+  //     let px = map(this.f_tab.getString(r-1, 0), 0, 1539, 0, column1_w);
+  //     let py = 225 - map(this.f_tab.getString(r-1, 1), this.min_feat, this.max_feat, 0, 45);
+  //     let x = map(this.f_tab.getString(r, 0), 0, 1539, 0, column1_w);
+  //     let y = 225 - map(this.f_tab.getString(r, 1), this.min_feat, this.max_feat, 0, 45);
+  //     canvas2.line(px, py, x, y);
+  //   }
+  // }
 
   drawFeatureSliding(){
     stroke(100);
@@ -309,22 +375,18 @@ class featurePlot {
     }
   }
 
-  drawMetaData() {
-    canvas3.fill(200);
-    canvas3.textSize(10);
-    canvas3.text("feature min: "+String(nf(this.min_feat,1,2)),326,8);
-    canvas3.text("feature max: "+String(nf(this.max_feat,1,2)),326,18);
-    canvas3.text("stim duration (s): "+String(duration_s),326,28);
-  }
+  // drawMetaData() {
+  //   canvas3.fill(200);
+  //   canvas3.textSize(10);
+  //   canvas3.text("feature min: "+String(nf(this.min_feat,1,2)),326,8);
+  //   canvas3.text("feature max: "+String(nf(this.max_feat,1,2)),326,18);
+  //   //canvas3.text("stim duration (s): "+String(duration_s),326,28);
+  //   canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),326,28);
+  // }
 }
-//draw feature - coarse averaged - not using anymore for now
-// function drawFeatureCoarse(){
-//   canvas2.stroke(0,0,255);
-//   for (let r = 1; r < f_tab.getRowCount()-coarseness-coarseness; r=r+coarseness) {
-//     let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w)
-//     let py = 225 - map(getCoarseVals(r-1), min_feat, max_feat, 0, 45)
-//     let x = map(f_tab.getString(r+coarseness, 0), 0, 1539, 0, column1_w)
-//     let y = 225 - map(getCoarseVals(r+coarseness), min_feat, max_feat, 0, 45)
-//     canvas2.line(px, py, x, y);
-//   }
-// }
+
+function secondsToMinSec(secondsin) {
+  var minutes = Math.floor(secondsin / 60);
+  var seconds = ((secondsin % 60)).toFixed(0);
+  return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
