@@ -1,8 +1,15 @@
 let vid; //video object
 let vid_loaded = false;
 
-let f_id = 'as-Music'; //feature id
-let feat_sel; //selector for feature
+let f_id = 'as-Alarm'; //feature id
+
+let features = [];
+feature_n = 1;
+
+let feat_sel1; //selector for feature
+let feat_sel2; //selector for feature
+let feat_sel3; //selector for feature
+
 let button_play;
 let button_load;
 //let f_tab; //table of feature values
@@ -35,7 +42,31 @@ let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
 
-
+// list all of the csv files... do this with the api? node.js? a file with all of the names? 
+let feat_names = ['as-Alarm',
+'as-Animal',
+'as-Domestic animals pets',
+'as-Engine',
+'as-Explosion',
+'as-Fire',
+'as-Glass',
+'as-Hands',
+'as-Heart sounds heartbeat',
+'as-Liquid',
+'as-Livestock farm animals working animals',
+'as-Mechanisms',
+'as-Music',
+'as-Musical instrument',
+'as-Noise',
+'as-Silence',
+'as-Thunderstorm',
+'as-Tools',
+'as-Vehicle',
+'as-Water',
+'as-Whistling',
+'as-Wild animals',
+'as-Wind',
+'as-Wood'];
 
 function preload() {
   //my table is comma separated value "csv"
@@ -71,47 +102,23 @@ function setup() {
   // video play button
   button_play = createButton('play');
   button_play.mousePressed(toggleVid); // attach button listener
-  //feature select button
+  
+  
+  
+  // sel1 = new FeatureSelector(f_id1);
+
   sel = createSelect();
   sel.position(canvas_w, 50);
-  
-  // list all of the csv files... do this with the api? node.js? a file with all of the names? 
-  let feat_names = ['as-Alarm',
-  'as-Animal',
-  'as-Domestic animals pets',
-  'as-Engine',
-  'as-Explosion',
-  'as-Fire',
-  'as-Glass',
-  'as-Hands',
-  'as-Heart sounds heartbeat',
-  'as-Liquid',
-  'as-Livestock farm animals working animals',
-  'as-Mechanisms',
-  'as-Music',
-  'as-Musical instrument',
-  'as-Noise',
-  'as-Silence',
-  'as-Thunderstorm',
-  'as-Tools',
-  'as-Vehicle',
-  'as-Water',
-  'as-Whistling',
-  'as-Wild animals',
-  'as-Wind',
-  'as-Wood',
-  'as-Music'];
-  // make an option for all of the names in the array
   for (let i = 0; i < feat_names.length; i++) {
     sel.option(feat_names[i]);
   }
-  sel.selected('as-Music');
-
+  sel.selected(f_id);
   sel.changed(featSelect);
 
   // Set Up feature(s)
-  feat1 = new Feature(f_id); //load music feature by default
-  feat1.loadFeatTable()
+  features[feature_n-1] = new Feature(f_id);
+  //feat1 = new Feature(f_id1); //load music feature by default
+  features[feature_n-1].loadFeatTable()
 
   //draw column1/2 line to background renderer
   drawColumnLines();
@@ -135,22 +142,61 @@ function draw() {
     fill(0,200,0);
     rect(completion*column1_w, 180, 1, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
-    feat1.drawFeatureSliding();
-    feat1.drawInstantaneous();  
+    for (let i = 0; i < feature_n; i++) {
+      features[i].drawFeatureSliding();
+      features[i].drawInstantaneous();  
+    }
     drawCurrentTime();
     image(canvas3,0,0); //display overlay canvas
   }
 }
 
 function featSelect() {
+  print(sel.value());
   f_id = sel.value();
-  canvas3.clear();
-  canvas2.clear();
+  // canvas3.clear();
+  // canvas2.clear();
   // background(200);
   canvas3.text('f_id = ' + f_id + '!', 100, 100);
-  feat1 = new Feature(f_id); //load music feature by default
-  feat1.loadFeatTable()
+  // feat1 = new Feature(f_id); //load music feature by default
+  // feat1.loadFeatTable()
+
+  feature_n = feature_n + 1;
+  features[feature_n-1] = new Feature(f_id);
+  //feat1 = new Feature(f_id1); //load music feature by default
+  features[feature_n-1].loadFeatTable()
 }
+
+// class FeatureSelector {
+//   constructor(f_id1) {
+//     this.f_id = f_id1;
+//     this.sel = createSelect();
+//     this.sel.position(canvas_w, 50);
+//     for (let i = 0; i < feat_names.length; i++) {
+//       this.sel.option(feat_names[i]);
+//     }
+//     this.sel.selected('as-Music');
+//     this.sel.changed(this.featSelect);
+
+//   }
+
+//   featSelect() {
+//     print(this.sel.value());
+//     f_id1 = this.sel.value();
+//     canvas3.clear();
+//     canvas2.clear();
+//     // background(200);
+//     canvas3.text('f_id = ' + f_id1 + '!', 100, 100);
+//     // feat1 = new Feature(f_id); //load music feature by default
+//     // feat1.loadFeatTable()
+//   }
+// }
+
+
+
+
+
+
 
 function drawColumnLines() {
   canvas2.stroke(75);
@@ -272,12 +318,6 @@ function handleVideo(file) {
   }
 }
 
-function testCallback(){
-    print(feat1.f_tab.getColumn(0));
-}
-
-
-
 
 class Feature {
   constructor(f_id) {
@@ -299,14 +339,14 @@ class Feature {
   loadInfoFromTable(loadedtable){
     let f_tab = loadedtable;
     print('loaded?');
-    print(loadedtable.getColumn(0));
+    //print(loadedtable.getColumn(0));
     //getMinMaxTime
     //this.feature_vals_time = loadedtable.getColumn(0);
     //print(this.feature_vals_time[1]);
-    print(min(loadedtable.getColumn(0)));
+    //print(min(loadedtable.getColumn(0)));
     // let min_feat_time = min(loadedtable.getColumn(0));
     // let max_feat_time = max(loadedtable.getColumn(0));
-    print(loadedtable.getColumn(1));
+    //print(loadedtable.getColumn(1));
     // getMinMax
     let feature_vals = loadedtable.getColumn(1);
     let min_feat = min(feature_vals);
