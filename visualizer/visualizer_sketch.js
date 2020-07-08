@@ -4,6 +4,7 @@ let vid_loaded = false;
 let f_id = 'as-Alarm'; //feature id
 
 let features = [];
+let feature_color = [];
 feature_n = 1;
 
 let feat_sel1; //selector for feature
@@ -192,12 +193,6 @@ function featSelect() {
 //   }
 // }
 
-
-
-
-
-
-
 function drawColumnLines() {
   canvas2.stroke(75);
   canvas2.strokeWeight(3);
@@ -322,8 +317,20 @@ function handleVideo(file) {
 class Feature {
   constructor(f_id) {
   this.f_id = f_id;
+  this.c = color(random(255), random(255), random(255));
   print(this.f_id);
+  print(this.c);
   }
+
+
+  // set c(c) {
+  //   this._c = c;
+  // }
+
+  // get c(){
+  //   return this._c
+  // }
+
 
   loadFeatTable(){
     this.f_tab = loadTable('./assets/' + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
@@ -336,7 +343,7 @@ class Feature {
   } 
 
 
-  loadInfoFromTable(loadedtable){
+  loadInfoFromTable = (loadedtable) => {
     let f_tab = loadedtable;
     print('loaded?');
     //print(loadedtable.getColumn(0));
@@ -355,8 +362,8 @@ class Feature {
 
 
     //drawFeatureDetailed(){
-    canvas2.fill(0,0,200);
-    canvas2.stroke(0,0,200);
+    canvas2.fill(this.c);
+    canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
     for (let r = 1; r < f_tab.getRowCount(); r++) {
       // print(f_tab.getRowCount());
@@ -396,7 +403,7 @@ class Feature {
   //   }
   // }
 
-  drawFeatureSliding(){
+  drawFeatureSliding = () => {
     stroke(100);
     if (isNaN(completion)) {
       completion = 0;
@@ -420,6 +427,7 @@ class Feature {
     let time_m = ~~(time / 60);
     let time_s = (time % 60);
     text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 110, 270); 
+    stroke(this.c);
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
@@ -432,7 +440,7 @@ class Feature {
   }
 
   //make a bar of the instantaneous feature level
-  drawInstantaneous(){
+  drawInstantaneous = () => {
     noStroke();
     fill(0,200,0);
     strokeWeight(1);
