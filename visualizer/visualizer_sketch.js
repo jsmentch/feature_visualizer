@@ -7,6 +7,8 @@ let features = [];
 let feature_color = [];
 feature_n = 1;
 
+let instructions; //html text instrucitons
+
 let feat_sel1; //selector for feature
 let feat_sel2; //selector for feature
 let feat_sel3; //selector for feature
@@ -95,14 +97,16 @@ function setup() {
   button_load.position(canvas_w, 0);
   // video play button
   button_play = createButton('play');
+  button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
   
-  
+  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the "Coarse Timeline" on the left');
+  instructions.position(canvas_w, 12);
   
   // sel1 = new FeatureSelector(f_id1);
 
   sel = createSelect();
-  sel.position(canvas_w, 50);
+  sel.position(canvas_w, 110);
   for (let i = 0; i < feat_names.length; i++) {
     sel.option(feat_names[i]);
   }
@@ -133,7 +137,7 @@ function draw() {
     image(canvas2,0,0); // display renderer object with static graph
     completion = vid.time() / vid.duration();
     noStroke();
-    fill(0,200,0);
+    fill(255,0,0); // slider bar
     rect(completion*column1_w, vid_h, 1, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     for (let i = 0; i < feature_n; i++) {
@@ -199,7 +203,7 @@ function drawPanelLabels() {
   canvas3.fill(200);
   canvas3.textSize(15);
   canvas3.text("Coarse Timeline",2,vid_h-2);
-  canvas3.text("Fine Timeline",2,vid_h+slider_h+125);
+  canvas3.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas3.stroke(0);
   canvas3.strokeWeight(1)
   canvas3.fill(255)
@@ -310,7 +314,7 @@ class Feature {
   constructor(f_id,feature_n) {
   this.f_id = f_id;
   this.feature_n = feature_n;
-  this.c = color(random(255), random(255), random(255), 100);
+  this.c = color(random(205)+50, random(205)+50, random(205)+50, 150);
   print(this.f_id);
   print(this.c);
   }
@@ -360,9 +364,12 @@ class Feature {
     canvas2.strokeWeight(1);
     for (let r = 1; r < f_tab.getRowCount(); r++) {
       // print(f_tab.getRowCount());
-      let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w);
-      let py = vid_h+slider_h - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 74);
-      let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
+      //let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w); //map x time from s to px x
+      let px = map(r-1, 0, f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
+
+      let py = vid_h+slider_h - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
+      //let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
+      let x = map(r, 0, f_tab.getRowCount(), 0, column1_w);
       let y = vid_h+slider_h - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
     }
@@ -383,6 +390,26 @@ class Feature {
     canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+6,meta_h+13);
     canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+6,meta_h+26);
     canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+6,meta_h+39);
+
+
+
+
+
+    canvas3.textSize(10);
+    canvas3.stroke(0);
+    canvas3.fill(200);
+    canvas3.translate(feature_n*30,vid_h-30)
+    canvas3.rotate(-PI/2);
+
+    canvas3.text(String(this.f_id),10,12);
+    //canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
+
+    canvas3.rotate(PI/2);
+    canvas3.translate(-feature_n*30,-vid_h+30)
+
+
+
+
     //}
   }
 
@@ -409,8 +436,10 @@ class Feature {
     let time = duration_s*completion;
     let time_m = ~~(time / 60);
     let time_s = (time % 60);
-    text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2, vid_h+slider_h+150); 
+    text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, vid_h+slider_h+150); 
     stroke(this.c);
+
+    
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
@@ -425,9 +454,9 @@ class Feature {
   //make a bar of the instantaneous feature level
   drawInstantaneous = () => {
     noStroke();
-    fill(0,200,0);
+    fill(255,0,0);
     strokeWeight(1);
-    rect(column1_w/2, vid_h+slider_h+20, 1, 100);
+    rect(column1_w/2, vid_h+slider_h+20, 1, 100); //marker for sliding plot current time
     if (isNaN(completion)) {
       completion = 0;
     }
@@ -436,9 +465,9 @@ class Feature {
     if (current_rowindex<this.f_tab.getRowCount()){
       let current_val = this.f_tab.getString(current_rowindex, 1);
       current_val = map(current_val,0,1,0,100)
-      stroke(255,0,0);
-      fill(255,0,0);
-      rect(column1_w/2, vid_h, 1, -current_val);
+      stroke(this.c);
+      fill(this.c);
+      rect(this.feature_n*30, vid_h-30, 20, -current_val);
     }
   }
 }
