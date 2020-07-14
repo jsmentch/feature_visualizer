@@ -138,6 +138,22 @@ function setup() {
   button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
   
+
+
+  button = createButton('normal speed');
+  button.position(canvas_w, 150);
+  button.mousePressed(normal_speed);
+
+  button = createButton('2x speed');
+  button.position(canvas_w, 170);
+  button.mousePressed(twice_speed);
+
+  button = createButton('half speed');
+  button.position(canvas_w, 190);
+  button.mousePressed(half_speed);
+
+
+
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the "Coarse Timeline" on the left');
   instructions.position(canvas_w, 12);
   
@@ -286,6 +302,20 @@ function toggleVid() {
   }
   playing = !playing;
 }
+
+function normal_speed() {
+  vid.speed(1);
+}
+
+function twice_speed() {
+  vid.speed(2);
+}
+
+function half_speed() {
+  vid.speed(0.5);
+}
+
+
 
 function getCoarseVals(r){
   let sum = 0;
