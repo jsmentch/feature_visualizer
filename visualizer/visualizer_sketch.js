@@ -93,7 +93,21 @@ let feat_names = ['as-Alarm',
 'face_detectionConfidence',
 'face',
 'any_faces',
-'speech'];
+'speech',
+'speaker_id_gaius',
+'speaker_id_gregory',
+'speaker_id_guinevere',
+'speaker_id_helen',
+'speaker_id_helen_mary',
+'speaker_id_kilgharrah',
+'speaker_id_knight',
+'speaker_id_mary',
+'speaker_id_merlin',
+'speaker_id_morgana',
+'speaker_id_morris',
+'speaker_id_uther',
+'speaker_id_arthur',
+'speaker_id_hunith'];
 
 function preload() {
   //my table is comma separated value "csv"
