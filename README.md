@@ -1,11 +1,7 @@
-## feature_auditor
+## Neuroscout Feature Visualizer
 
 A p5js sketch to visualize audioset features extracted from naturalistic movie stimuli
 
-To run: clone this repo
+This sketch is currently live at https://jsmentch.github.io/feature_auditor/visualizer/
 
-install https://www.npmjs.com/package/http-server
-
-start an http-server with this repo as the path
-
-navigate to http://localhost:8080/visualizer
+In order to run the sketch, you must locally upload a stimulus movie file for the sherlock merlin study "MerlinMovie" stimulus.
