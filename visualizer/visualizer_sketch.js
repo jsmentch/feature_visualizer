@@ -157,6 +157,8 @@ function setup() {
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the "Coarse Timeline" on the left');
   instructions.position(canvas_w, 12);
   
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed');
+  keycommands.position(canvas_w, 250);
   // sel1 = new FeatureSelector(f_id1);
 
   sel = createSelect();
@@ -202,6 +204,23 @@ function draw() {
     image(canvas3,0,0); //display overlay canvas
   }
 }
+
+//Keyboard Commands
+function keyPressed() {
+  if (keyCode === 32) {
+    toggleVid();
+  }
+  if (keyCode === 49) {
+    half_speed();
+  }
+  if (keyCode === 50) {
+    normal_speed();
+  }
+  if (keyCode === 51) {
+    twice_speed();
+  }
+}
+
 
 function featSelect() {
   print(sel.value());
