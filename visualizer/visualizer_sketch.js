@@ -352,7 +352,8 @@ class Feature {
   constructor(f_id,feature_n) {
   this.f_id = f_id;
   this.feature_n = feature_n;
-  this.c = color(random(205)+50, random(205)+50, random(205)+50, 150);
+  colorMode(HSB, 360, 100, 100, 100)
+  this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
   print(this.f_id);
   print(this.c);
   }
