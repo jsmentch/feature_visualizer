@@ -175,7 +175,7 @@ function draw() {
     image(canvas2,0,0); // display renderer object with static graph
     completion = vid.time() / vid.duration();
     noStroke();
-    fill(255,0,0); // slider bar
+    fill(0,100,100); // slider bar
     rect(completion*column1_w, vid_h, 1, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     for (let i = 0; i < feature_n; i++) {
@@ -493,7 +493,7 @@ class Feature {
   //make a bar of the instantaneous feature level
   drawInstantaneous = () => {
     noStroke();
-    fill(255,0,0);
+    fill(0,100,100);
     strokeWeight(1);
     rect(column1_w/2, vid_h+slider_h+20, 1, 100); //marker for sliding plot current time
     if (isNaN(completion)) {
