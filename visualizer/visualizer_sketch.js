@@ -154,7 +154,7 @@ function setup() {
 
 
 
-  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the "Coarse Timeline" on the left');
+  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
   instructions.position(canvas_w, 12);
   
   keycommands = createP('spacebar=play/pause; 1,2,3=change speed');
@@ -296,6 +296,7 @@ function drawCurrentTime() {
 }
 
 function mousePressed() {
+  //navigation in coarse window
   if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
     if (!playing) {
       //vid.play();
@@ -307,6 +308,11 @@ function mousePressed() {
       vid.time((mouseX/column1_w) * vid.duration());
       //playing = false;
     }
+  }
+  //navigation in fine window
+  else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+    let cur_t = vid.time();
+    vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
   }
 }
 
