@@ -293,6 +293,10 @@ function drawCurrentTime() {
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
+  // add seconds elapse
+  textSize(10);
+  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60); 
+
 }
 
 function mousePressed() {
