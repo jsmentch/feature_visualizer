@@ -15,6 +15,8 @@ let feat_sel3; //selector for feature
 
 let button_play;
 let button_load;
+let button_mute;
+
 //let f_tab; //table of feature values
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
@@ -39,6 +41,7 @@ let new_feature = 1; //now unused
 
 //time info
 let playing = false;
+let muted = false;
 let completion = 0;
 let duration_s = 1513; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
@@ -137,8 +140,6 @@ function setup() {
   button_play = createButton('play');
   button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
-  
-
 
   button = createButton('normal speed');
   button.position(canvas_w, 150);
@@ -152,12 +153,14 @@ function setup() {
   button.position(canvas_w, 190);
   button.mousePressed(half_speed);
 
-
+  button_mute = createButton('mute');
+  button_mute.position(canvas_w,210);
+  button_mute.mousePressed(mute_sound); // attach button listener
 
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
   instructions.position(canvas_w, 12);
   
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed');
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute');
   keycommands.position(canvas_w, 250);
   // sel1 = new FeatureSelector(f_id1);
 
@@ -218,6 +221,9 @@ function keyPressed() {
   }
   if (keyCode === 51) {
     twice_speed();
+  }
+  if (keyCode === 77) {
+    mute_sound();
   }
 }
 
@@ -330,6 +336,18 @@ function toggleVid() {
     button_play.html('pause');
   }
   playing = !playing;
+}
+
+function mute_sound() {
+  if (muted) {
+    vid.volume(1);
+    button_mute.html('mute');
+    //ellipse(10,10,10,10);  //add a pause sign when paused
+  } else {
+    vid.volume(0);
+    button_mute.html('unmute');
+  }
+  muted = !muted;
 }
 
 function normal_speed() {
