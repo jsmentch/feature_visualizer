@@ -110,7 +110,15 @@ let feat_names = ['as-Alarm',
 'speaker_id_morris',
 'speaker_id_uther',
 'speaker_id_arthur',
-'speaker_id_hunith'];
+'face_id_qc_arthur',
+'face_id_qc_gregory',
+'face_id_qc_guinevere',
+'face_id_qc_helen',
+'face_id_qc_mary',
+'face_id_qc_merlin',
+'face_id_qc_morgana',
+'face_id_qc_uther',
+'face_id_qc_arthur'];
 
 function preload() {
   //my table is comma separated value "csv"
