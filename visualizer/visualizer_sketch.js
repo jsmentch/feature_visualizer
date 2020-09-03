@@ -118,7 +118,9 @@ let feat_names = ['as-Alarm',
 'face_id_qc_merlin',
 'face_id_qc_morgana',
 'face_id_qc_uther',
-'face_id_qc_arthur'];
+'face_id_qc_arthur',
+'logical_and_all',
+'logical_and_merlin_test'];
 
 function preload() {
   //my table is comma separated value "csv"
