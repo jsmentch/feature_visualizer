@@ -41,6 +41,7 @@ let new_feature = 1; //now unused
 
 //time info
 let playing = false;
+let editing = false
 let muted = false;
 let completion = 0;
 let duration_s = 1513; //stimulus duration in seconds - updated in setup()
@@ -49,7 +50,27 @@ let time_m; //time ms for printing time
 let time_s; //time s for printing time
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
-let feat_names = ['as-Alarm',
+let feat_names = ['id_1_mqc',
+'id_2_mqc',
+'id_3_mqc',
+'id_4_mqc',
+'id_5_mqc',
+'id_6_mqc',
+'id_7_mqc',
+'id_8_mqc',
+'id_9_mqc',
+'id_10_mqc',
+'id_11_mqc',
+'id_12_mqc',
+'id_13_mqc',
+'id_14_mqc',
+'id_15_mqc',
+'id_16_mqc',
+'id_17_mqc',
+'id_18_mqc',
+'id_19_mqc',
+'id_20_mqc',
+'as-Alarm',
 'as-Animal',
 'as-Domestic animals pets',
 'as-Engine',
@@ -174,6 +195,10 @@ function setup() {
   keycommands.position(canvas_w, 250);
   // sel1 = new FeatureSelector(f_id1);
 
+  button_edit = createButton('Editing: OFF');
+  button_edit.position(canvas_w,290);
+  button_edit.mousePressed(toggleEdit); // attach button listener
+
   sel = createSelect();
   sel.position(canvas_w, 110);
   for (let i = 0; i < feat_names.length; i++) {
@@ -223,6 +248,9 @@ function keyPressed() {
   if (keyCode === 32) {
     toggleVid();
   }
+  if (keyCode === 69) {
+    toggleEdit();
+  }
   if (keyCode === 49) {
     half_speed();
   }
@@ -238,7 +266,7 @@ function keyPressed() {
 }
 
 
-function featSelect() {
+function featSelect() { //called when you select a feature to visualize
   print(sel.value());
   f_id = sel.value();
   // canvas3.clear();
@@ -248,8 +276,8 @@ function featSelect() {
   // feat1 = new Feature(f_id); //load music feature by default
   // feat1.loadFeatTable()
 
-  feature_n = feature_n + 1;
-  features[feature_n-1] = new Feature(f_id, feature_n);
+  feature_n = feature_n + 1; //total number of features +1
+  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
   //feat1 = new Feature(f_id1); //load music feature by default
   features[feature_n-1].loadFeatTable()
 }
@@ -317,22 +345,29 @@ function drawCurrentTime() {
 
 function mousePressed() {
   //navigation in coarse window
-  if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
-    if (!playing) {
-      //vid.play();
-      vid.time((mouseX/column1_w) * vid.duration());
-      //playing = true;
+  if (!editing) { // if edit mode is off, do allow skipping
+    if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
+      if (!playing) {
+        //vid.play();
+        vid.time((mouseX/column1_w) * vid.duration());
+        //playing = true;
+      }
+      else {
+        //vid.pause();
+        vid.time((mouseX/column1_w) * vid.duration());
+        //playing = false;
+      }
     }
-    else {
-      //vid.pause();
-      vid.time((mouseX/column1_w) * vid.duration());
-      //playing = false;
+    //navigation in fine window
+    else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+      let cur_t = vid.time();
+      vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
     }
   }
-  //navigation in fine window
-  else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+  else { //if EDITING mode is on
     let cur_t = vid.time();
-    vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+    let click_time = cur_t+map((mouseX/column1_w),0,1,-5,5)
+    features[feature_n-1].editValue(click_time/duration_s ,1)// given time (from mouse location ) and value to set
   }
 }
 
@@ -346,6 +381,18 @@ function toggleVid() {
     button_play.html('pause');
   }
   playing = !playing;
+}
+
+function toggleEdit() {
+  if (!editing) {
+    //vid.pause();
+    button_edit.html('Editing: ON');
+    //ellipse(10,10,10,10);  //add a pause sign when paused
+  } else {
+    //vid.play();
+    button_edit.html('Editing: OFF');
+  }
+  editing = !editing;
 }
 
 function mute_sound() {
@@ -531,13 +578,27 @@ class Feature {
     //canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
 
     canvas3.rotate(PI/2);
-    canvas3.translate(-feature_n*30,-vid_h+30)
+    canvas3.translate(-feature_n*30,-vid_h+30);
 
 
 
 
     //}
   }
+
+  editValue = (new_feat_time,new_feat_val) => {
+    // map from completion percent -> index
+    print(new_feat_time) //706.7364040056104
+    print(float(this.f_tab.getRowCount())) //15127
+    let edit_time = round(map(new_feat_time, 0, 1, 0, float(this.f_tab.getRowCount())));
+    //print(this.f_tab);
+    print(edit_time); // this is 10690802
+    print(new_feat_val); // 1
+    this.f_tab.set(edit_time,1,new_feat_val);
+    //this.f_tab.set(1,1,1);
+      //this.rows[row].set(column, value); //set(row, column, value) //set new value
+  } 
+
 
   drawFeatureSliding = () => {
     stroke(100);
