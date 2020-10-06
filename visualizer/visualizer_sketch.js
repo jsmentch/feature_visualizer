@@ -1,7 +1,7 @@
 let vid; //video object
 let vid_loaded = false;
 
-let f_id = 'as-Alarm'; //feature id
+let f_id = 'dummy'; //feature id
 
 let features = [];
 let feature_color = [];
@@ -38,6 +38,8 @@ let coarse_ymin = 0;
 let min_feat;
 let max_feat;
 let new_feature = 1; //now unused
+
+//let feat_val_new = 1; //value to set to a feature in edit mode;
 
 //time info
 let playing = false;
@@ -191,13 +193,23 @@ function setup() {
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
   instructions.position(canvas_w, 12);
   
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute');
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing');
   keycommands.position(canvas_w, 250);
   // sel1 = new FeatureSelector(f_id1);
 
   button_edit = createButton('Editing: OFF');
   button_edit.position(canvas_w,290);
   button_edit.mousePressed(toggleEdit); // attach button listener
+
+  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
+  edit_instructions.position(canvas_w, 340);
+
+  input_export_name = createInput('edited_feature.csv');
+  input_export_name.position(canvas_w, 390);
+
+  button_export_feature = createButton('export current feature');
+  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
+  button_export_feature.mousePressed(exportFeature);
 
   sel = createSelect();
   sel.position(canvas_w, 110);
@@ -241,6 +253,17 @@ function draw() {
     drawCurrentTime();
     image(canvas3,0,0); //display overlay canvas
   }
+  if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine grained box
+    //let cur_t = vid.time();
+    let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //time point to edit
+    if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
+      features[feature_n-1].editValue(click_time/duration_s, 1);// given time (from mouse location ) and value to set
+    }
+    else if (keyIsDown(16)) {
+      print('shift key down!')
+      features[feature_n-1].editValue(click_time/duration_s, 0);// given time (from mouse location ) and value to set
+    }
+  }
 }
 
 //Keyboard Commands
@@ -265,6 +288,9 @@ function keyPressed() {
   }
 }
 
+function exportFeature() {
+  features[feature_n-1].exportFeatureTable(input_export_name.value());
+}
 
 function featSelect() { //called when you select a feature to visualize
   print(sel.value());
@@ -363,11 +389,6 @@ function mousePressed() {
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
     }
-  }
-  else { //if EDITING mode is on
-    let cur_t = vid.time();
-    let click_time = cur_t+map((mouseX/column1_w),0,1,-5,5)
-    features[feature_n-1].editValue(click_time/duration_s ,1)// given time (from mouse location ) and value to set
   }
 }
 
@@ -579,13 +600,8 @@ class Feature {
 
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
-
-
-
-
     //}
   }
-
   editValue = (new_feat_time,new_feat_val) => {
     // map from completion percent -> index
     print(new_feat_time) //706.7364040056104
@@ -598,7 +614,9 @@ class Feature {
     //this.f_tab.set(1,1,1);
       //this.rows[row].set(column, value); //set(row, column, value) //set new value
   } 
-
+  exportFeatureTable = (input_export_name) => {
+    saveTable(this.f_tab, input_export_name)
+  }
 
   drawFeatureSliding = () => {
     stroke(100);
