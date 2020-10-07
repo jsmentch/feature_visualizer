@@ -68,6 +68,7 @@ let feat_names = ['id_1_mqc',
 'id_18_mqc',
 'id_19_mqc',
 'id_20_mqc',
+'logical_and_allv2',
 'as-Alarm',
 'as-Animal',
 'as-Domestic animals pets',
@@ -187,7 +188,7 @@ function setup() {
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
   instructions.position(canvas_w, 12);
   
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; arrow keys=skip +/- 10s');
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
   keycommands.position(canvas_w, 250);
 
   button_edit = createButton('Editing: OFF');
@@ -282,7 +283,18 @@ function keyPressed() {
   if (keyCode === 37) { //left arrow
     if (vid.time()>10) {
       vid.time(vid.time()-10);
-    }  }
+    }  
+  }
+  if (keyCode === 38) { //up arrow vol up
+    if (vid.volume()<0.91) {
+      vid.volume(vid.volume()+0.1);
+    }
+  }
+  if (keyCode === 40) { //down arrow vol down
+    if (vid.volume()>0.1) {
+      vid.volume(vid.volume()-0.1);
+    }
+  }
 }
 
 function exportFeature() { // export the current edited feature as a csv
