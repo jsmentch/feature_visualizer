@@ -155,13 +155,11 @@ function preload() {
 }
 
 function setup() {
-
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
 
-  
   // video load button
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 0);
@@ -191,7 +189,6 @@ function setup() {
   
   keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; arrow keys=skip +/- 10s');
   keycommands.position(canvas_w, 250);
-  // sel1 = new FeatureSelector(f_id1);
 
   button_edit = createButton('Editing: OFF');
   button_edit.position(canvas_w,290);
@@ -217,17 +214,12 @@ function setup() {
 
   // Set Up feature(s)
   features[feature_n-1] = new Feature(f_id, feature_n);
-  //feat1 = new Feature(f_id1); //load music feature by default
   features[feature_n-1].loadFeatTable()
 
   //draw column1/2 line to background renderer
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
-//  feat1.loadFeatInfo();
-  //setup feature plot based on min,max
-//  feat1.drawFeatureDetailed();
-//  feat1.drawMetaData();
 
 }
 function draw() {
@@ -250,20 +242,19 @@ function draw() {
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
   }
-  // edit mode
+  // edit mode stuff - break into fn?
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //get time point to edit from mouse location
     if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
       features[feature_n-1].editValue(click_time/duration_s, 1);// given time point and value to set
     }
     else if (keyIsDown(16)) {
-      print('shift key down!')
       features[feature_n-1].editValue(click_time/duration_s, 0);// given time point and value to set
     }
   }
 }
 
-//Keyboard Commands
+//Keyboard Hotkeys
 function keyPressed() {
   if (keyCode === 32) { //space
     toggleVid();
@@ -301,43 +292,10 @@ function exportFeature() { // export the current edited feature as a csv
 function featSelect() { //called when you select a feature to visualize
   print(sel.value());
   f_id = sel.value();
-  // canvas3.clear();
-  // canvas2.clear();
-  // background(200);
-  // canvas3.text('f_id = ' + f_id + '!', 100, 100);
-  // feat1 = new Feature(f_id); //load music feature by default
-  // feat1.loadFeatTable()
-
   feature_n = feature_n + 1; //total number of features
   features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  //feat1 = new Feature(f_id1); //load music feature by default
-  features[feature_n-1].loadFeatTable()
+  features[feature_n-1].loadFeatTable();
 }
-
-// class FeatureSelector {
-//   constructor(f_id1) {
-//     this.f_id = f_id1;
-//     this.sel = createSelect();
-//     this.sel.position(canvas_w, 50);
-//     for (let i = 0; i < feat_names.length; i++) {
-//       this.sel.option(feat_names[i]);
-//     }
-//     this.sel.selected('as-Music');
-//     this.sel.changed(this.featSelect);
-
-//   }
-
-//   featSelect() {
-//     print(this.sel.value());
-//     f_id1 = this.sel.value();
-//     canvas3.clear();
-//     canvas2.clear();
-//     // background(200);
-//     canvas3.text('f_id = ' + f_id1 + '!', 100, 100);
-//     // feat1 = new Feature(f_id); //load music feature by default
-//     // feat1.loadFeatTable()
-//   }
-// }
 
 function drawColumnLines() {
   canvas2.stroke(75);
@@ -354,8 +312,8 @@ function drawPanelLabels() {
   canvas3.text("Coarse Timeline",2,vid_h-2);
   canvas3.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas3.stroke(0);
-  canvas3.strokeWeight(1)
-  canvas3.fill(255)
+  canvas3.strokeWeight(1);
+  canvas3.fill(255);
   canvas3.text("stimulus: Merlin_Movie",3,12);
 }
 
@@ -481,17 +439,12 @@ function drawAxisX(){
     canvas2.strokeWeight(0);
     canvas2.fill(255);
     canvas2.textAlign(CENTER, CENTER);
-
-    canvas2.translate(xPos,vid_h+slider_h+10)
+    canvas2.translate(xPos,vid_h+slider_h+10);
     canvas2.rotate(PI/6);
-
-    cur_time = i*duration_s/10
-
+    cur_time = i*duration_s/10;
     canvas2.text(secondsToMinSec(cur_time),2,0);
-    //canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
-
     canvas2.rotate(-PI/6);
-    canvas2.translate(-xPos,-vid_h-slider_h-10)
+    canvas2.translate(-xPos,-vid_h-slider_h-10);
   }
 }
 
@@ -501,7 +454,6 @@ function handleVideo(file) {
     print(file);
     vid = createVideo(file.data);
     let duration_s = vid.duration();
-    
     vid.position(0,0);
     vid.hide();
   }
@@ -511,7 +463,7 @@ class Feature {
   constructor(f_id,feature_n) {
   this.f_id = f_id;
   this.feature_n = feature_n;
-  colorMode(HSB, 360, 100, 100, 100)
+  colorMode(HSB, 360, 100, 100, 100);
   this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
   print(this.f_id);
   print(this.c);
@@ -536,8 +488,6 @@ class Feature {
     let feature_vals = loadedtable.getColumn(1);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
-
-
 
     //drawFeatureDetailed(){
     canvas2.fill(this.c);
@@ -571,36 +521,21 @@ class Feature {
     canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+6,meta_h+13);
     canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+6,meta_h+26);
     canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+6,meta_h+39);
-
-
-
-
-
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
     canvas3.translate(feature_n*30,vid_h-30)
     canvas3.rotate(-PI/2);
-
     canvas3.text(String(this.f_id),10,12);
-    //canvas2.text(String(nf(i,2,0))+':'+String(nf(i,2,0)),2,0);
-
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
-    //}
   }
+  //edit the feature value in the table
   editValue = (new_feat_time,new_feat_val) => {
-    // map from completion percent -> index
-    print(new_feat_time) //706.7364040056104
-    print(float(this.f_tab.getRowCount())) //15127
     let edit_time = round(map(new_feat_time, 0, 1, 0, float(this.f_tab.getRowCount())));
-    //print(this.f_tab);
-    print(edit_time); // this is 10690802
-    print(new_feat_val); // 1
     this.f_tab.set(edit_time,1,new_feat_val);
-    //this.f_tab.set(1,1,1);
-      //this.rows[row].set(column, value); //set(row, column, value) //set new value
   } 
+  //export edited table to csv
   exportFeatureTable = (input_export_name) => {
     saveTable(this.f_tab, input_export_name)
   }
@@ -614,7 +549,7 @@ class Feature {
     
   // try to get the feature alignment right based on true movie time +/- offset
     //current_rowindex = time 
-
+//add offset parameter?
     // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
     //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
     // });
@@ -631,7 +566,6 @@ class Feature {
     text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, vid_h+slider_h+150); 
     stroke(this.c);
 
-    
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
@@ -643,7 +577,7 @@ class Feature {
     } 
   }
 
-  //make a bar of the instantaneous feature level
+  //make an overlaid bar of the instantaneous feature level
   drawInstantaneous = () => {
     noStroke();
     fill(0,100,100);
