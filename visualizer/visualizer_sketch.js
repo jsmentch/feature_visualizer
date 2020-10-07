@@ -1,17 +1,13 @@
 let vid; //video object
 let vid_loaded = false;
 
-let f_id = 'dummy'; //feature id
+let f_id = 'dummy'; // start on a dummy feature for now...
 
 let features = [];
 let feature_color = [];
 feature_n = 1;
 
 let instructions; //html text instrucitons
-
-let feat_sel1; //selector for feature
-let feat_sel2; //selector for feature
-let feat_sel3; //selector for feature
 
 let button_play;
 let button_load;
@@ -193,7 +189,7 @@ function setup() {
   instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
   instructions.position(canvas_w, 12);
   
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing');
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; arrow keys=skip +/- 10s');
   keycommands.position(canvas_w, 250);
   // sel1 = new FeatureSelector(f_id1);
 
@@ -251,44 +247,54 @@ function draw() {
       features[i].drawInstantaneous();  
     }
     drawCurrentTime();
+    drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
   }
-  if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine grained box
-    //let cur_t = vid.time();
-    let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //time point to edit
+  // edit mode
+  if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
+    let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //get time point to edit from mouse location
     if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
-      features[feature_n-1].editValue(click_time/duration_s, 1);// given time (from mouse location ) and value to set
+      features[feature_n-1].editValue(click_time/duration_s, 1);// given time point and value to set
     }
     else if (keyIsDown(16)) {
       print('shift key down!')
-      features[feature_n-1].editValue(click_time/duration_s, 0);// given time (from mouse location ) and value to set
+      features[feature_n-1].editValue(click_time/duration_s, 0);// given time point and value to set
     }
   }
 }
 
 //Keyboard Commands
 function keyPressed() {
-  if (keyCode === 32) {
+  if (keyCode === 32) { //space
     toggleVid();
   }
-  if (keyCode === 69) {
+  if (keyCode === 69) { //e
     toggleEdit();
   }
-  if (keyCode === 49) {
+  if (keyCode === 49) { //1
     half_speed();
   }
-  if (keyCode === 50) {
+  if (keyCode === 50) { //2
     normal_speed();
   }
-  if (keyCode === 51) {
+  if (keyCode === 51) { //3
     twice_speed();
   }
-  if (keyCode === 77) {
+  if (keyCode === 77) { //m
     mute_sound();
   }
+  if (keyCode === 39) { //right arrow skip forward
+    if (vid.time()<duration_s-10) {
+      vid.time(vid.time()+10);
+    }
+  }
+  if (keyCode === 37) { //left arrow
+    if (vid.time()>10) {
+      vid.time(vid.time()-10);
+    }  }
 }
 
-function exportFeature() {
+function exportFeature() { // export the current edited feature as a csv
   features[feature_n-1].exportFeatureTable(input_export_name.value());
 }
 
@@ -302,7 +308,7 @@ function featSelect() { //called when you select a feature to visualize
   // feat1 = new Feature(f_id); //load music feature by default
   // feat1.loadFeatTable()
 
-  feature_n = feature_n + 1; //total number of features +1
+  feature_n = feature_n + 1; //total number of features
   features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
   //feat1 = new Feature(f_id1); //load music feature by default
   features[feature_n-1].loadFeatTable()
@@ -368,6 +374,19 @@ function drawCurrentTime() {
   text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60); 
 
 }
+function drawGraphicOverlay() { // draw pause sign and recording sign overlays
+  if (!playing){
+    stroke(0);
+    fill('hsba(0, 0%, 100%, 0.5)');
+    rect(vid_w/2-10,vid_h/2,10,60);  //add a pause sign when paused
+    rect(vid_w/2+10,vid_h/2,10,60);  //add a pause sign when paused
+  }
+  if (editing){
+    stroke(0);
+    fill(color('hsba(0, 100%, 100%, 0.5)'));
+    ellipse(vid_w-50,vid_h-50,50,50);  //add a recording sign when editing
+  }
+}
 
 function mousePressed() {
   //navigation in coarse window
@@ -396,7 +415,6 @@ function toggleVid() {
   if (playing) {
     vid.pause();
     button_play.html('play');
-    //ellipse(10,10,10,10);  //add a pause sign when paused
   } else {
     vid.play();
     button_play.html('pause');
@@ -406,14 +424,11 @@ function toggleVid() {
 
 function toggleEdit() {
   if (!editing) {
-    //vid.pause();
-    button_edit.html('Editing: ON');
-    //ellipse(10,10,10,10);  //add a pause sign when paused
+    button_edit.html('Editing: ON'); //change text of button based on state
   } else {
-    //vid.play();
     button_edit.html('Editing: OFF');
   }
-  editing = !editing;
+  editing = !editing; // toggle edit mode
 }
 
 function mute_sound() {
@@ -427,20 +442,15 @@ function mute_sound() {
   }
   muted = !muted;
 }
-
 function normal_speed() {
   vid.speed(1);
 }
-
 function twice_speed() {
   vid.speed(2);
 }
-
 function half_speed() {
   vid.speed(0.5);
 }
-
-
 
 function getCoarseVals(r){
   let sum = 0;
@@ -451,13 +461,8 @@ function getCoarseVals(r){
   return px_avg;
 }
 
-
-
 // this freezes things near the end - fix 
 // cant get string of undefined
-
-
-
 
 //draw axis labels to canvas2
 function drawAxisX(){
@@ -502,7 +507,6 @@ function handleVideo(file) {
   }
 }
 
-
 class Feature {
   constructor(f_id,feature_n) {
   this.f_id = f_id;
@@ -513,26 +517,9 @@ class Feature {
   print(this.c);
   }
 
-
-  // set c(c) {
-  //   this._c = c;
-  // }
-
-  // get c(){
-  //   return this._c
-  // }
-
-
   loadFeatTable(){
     this.f_tab = loadTable('./assets/' + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
   }
-
-
-  testCallback(response){
-    // print('loaded?');
-    // print(response.getColumn(0));
-  } 
-
 
   loadInfoFromTable = (loadedtable) => {
     let f_tab = loadedtable;
