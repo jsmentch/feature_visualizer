@@ -47,6 +47,8 @@ let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
 
+document.onmousemove      = mouseMove;
+
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
 let feat_names = ['id_1_mqc',
 'id_2_mqc',
@@ -377,8 +379,18 @@ function mousePressed() {
     else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+
     }
   }
+}
+    
+function mouseMove(event) {
+    var eventDoc, doc, body;
+    //navigation in fine window
+    if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120 && mouseIsPressed){
+      let cur_t = vid.time();
+      vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+    }
 }
 
 function toggleVid() {
