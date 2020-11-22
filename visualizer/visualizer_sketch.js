@@ -47,7 +47,8 @@ let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
 
-document.onmousemove      = mouseMove;
+document.onmousemove = mouseMove; // track mouse motion
+let stimuli_name = '';
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
 let feat_names = ['id_1_mqc',
@@ -321,14 +322,14 @@ function drawColumnLines() {
 }
 
 function drawPanelLabels() {
-  canvas3.fill(200);
+  canvas3.fill(200)
   canvas3.textSize(15);
   canvas3.text("Coarse Timeline",2,vid_h-2);
   canvas3.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas3.stroke(0);
   canvas3.strokeWeight(1);
   canvas3.fill(255);
-  canvas3.text("stimulus: Merlin_Movie",3,12);
+  canvas3.text(stimuli_name,3,12);
 }
 
 function drawCurrentTime() {
@@ -480,6 +481,7 @@ function handleVideo(file) {
     let duration_s = vid.duration();
     vid.position(0,0);
     vid.hide();
+    canvas3.text("Stimuli: ".concat(file.name),3,12);
   }
 }
 
