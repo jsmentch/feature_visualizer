@@ -1,4 +1,4 @@
-let vid; //video object
+let vid = null; //video object
 let vid_loaded = false;
 
 let f_id = 'dummy'; // start on a dummy feature for now...
@@ -42,7 +42,7 @@ let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = 1513; //stimulus duration in seconds - updated in setup()
+let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
@@ -329,7 +329,6 @@ function drawPanelLabels() {
   canvas3.stroke(0);
   canvas3.strokeWeight(1);
   canvas3.fill(255);
-  canvas3.text(stimuli_name,3,12);
 }
 
 function drawCurrentTime() {
@@ -478,12 +477,16 @@ function handleVideo(file) {
     vid_loaded = true;
     print(file);
     vid = createVideo(file.data);
-    let duration_s = vid.duration();
     vid.position(0,0);
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
+    vid.addEventListener('loadedmetadata', function(e){
+      let duration_s = vid.duration();
+      print(duration_s)
+    });
   }
 }
+
 
 class Feature {
   constructor(f_id,feature_n) {
