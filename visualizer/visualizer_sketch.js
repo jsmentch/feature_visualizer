@@ -47,7 +47,6 @@ let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
 
-document.onmousemove = mouseMove; // track mouse motion
 let stimuli_name = '';
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
@@ -272,9 +271,10 @@ function keyPressed() {
   if (keyCode === 50) { //2
     normal_speed();
   }
-  if (keyCode === 51) { //3
-    twice_speed();
-  }
+  // Was returning some ReferenceError
+  // if (keyCmouseispressedode === 51) { //3
+  //   twice_speed();
+  // }
   if (keyCode === 77) { //m
     mute_sound();
   }
@@ -384,10 +384,10 @@ function mousePressed() {
   }
 }
     
-function mouseMove(event) {
+function mouseDragged() {
     var eventDoc, doc, body;
     //navigation in fine window
-    if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120 && mouseIsPressed){
+    if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
     }
@@ -480,11 +480,13 @@ function handleVideo(file) {
     vid.position(0,0);
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
-    vid.addEventListener('loadedmetadata', function(e){
-      let duration_s = vid.duration();
-      print(duration_s)
-    });
+    vid.preload = 'metadata';
   }
+}
+
+function vidLoad() {
+  let duration_s = vid.duration();
+  print(duration_s)
 }
 
 
