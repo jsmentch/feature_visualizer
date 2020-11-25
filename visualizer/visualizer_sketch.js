@@ -343,8 +343,7 @@ function drawCurrentTime() {
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
   // add seconds elapse
   textSize(10);
-  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60); 
-
+  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
 }
 function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   if (!playing){
@@ -448,6 +447,7 @@ function getCoarseVals(r){
 
 //draw axis labels to canvas2
 function drawAxisX(){
+  canvas2.remove()
   canvas2.stroke(250);
   canvas2.strokeWeight(0.7);
   canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
@@ -476,7 +476,7 @@ function handleVideo(file) {
   if (file.type === 'video') {
     vid_loaded = true;
     print(file);
-    vid = createVideo(file.data);
+    vid = createVideo(file.data,vidLoad);
     vid.position(0,0);
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
@@ -485,8 +485,8 @@ function handleVideo(file) {
 }
 
 function vidLoad() {
-  let duration_s = vid.duration();
-  print(duration_s)
+  duration_s = vid.duration();
+  drawAxisX();
 }
 
 
