@@ -2,6 +2,7 @@ let vid = null; //video object
 let vid_loaded = false;
 
 let f_id = 'dummy'; // start on a dummy feature for now...
+let f_folder = './assets/edits/'
 
 let features = [];
 let feature_color = [];
@@ -212,6 +213,7 @@ function setup() {
   for (let i = 0; i < feat_names.length; i++) {
     sel.option(feat_names[i]);
   }
+
   sel.selected(f_id);
   sel.changed(featSelect);
 
@@ -386,7 +388,7 @@ function mousePressed() {
 function mouseDragged() {
     var eventDoc, doc, body;
     //navigation in fine window
-    if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+    if (!editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
     }
@@ -447,28 +449,30 @@ function getCoarseVals(r){
 
 //draw axis labels to canvas2
 function drawAxisX(){
-  canvas2.remove()
-  canvas2.stroke(250);
-  canvas2.strokeWeight(0.7);
-  canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
-  for (let i=0; i < 11; i++) { 
-    let xPos = (0 + (i*column1_w/10));
-//x ticks    
+
+  if (duration_s > 0) {
     canvas2.stroke(250);
     canvas2.strokeWeight(0.7);
-    canvas2.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
-//x tick labels
-    canvas2.textSize(10);
-    canvas2.stroke(250);
-    canvas2.strokeWeight(0);
-    canvas2.fill(255);
-    canvas2.textAlign(CENTER, CENTER);
-    canvas2.translate(xPos,vid_h+slider_h+10);
-    canvas2.rotate(PI/6);
-    cur_time = i*duration_s/10;
-    canvas2.text(secondsToMinSec(cur_time),2,0);
-    canvas2.rotate(-PI/6);
-    canvas2.translate(-xPos,-vid_h-slider_h-10);
+    canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
+    for (let i=0; i < 11; i++) { 
+      let xPos = (0 + (i*column1_w/10));
+  //x ticks    
+      canvas2.stroke(250);
+      canvas2.strokeWeight(0.7);
+      canvas2.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
+  //x tick labels
+      canvas2.textSize(10);
+      canvas2.stroke(250);
+      canvas2.strokeWeight(0);
+      canvas2.fill(255);
+      canvas2.textAlign(CENTER, CENTER);
+      canvas2.translate(xPos,vid_h+slider_h+10);
+      canvas2.rotate(PI/6);
+      cur_time = i*duration_s/10;
+      canvas2.text(secondsToMinSec(cur_time),2,0);
+      canvas2.rotate(-PI/6);
+      canvas2.translate(-xPos,-vid_h-slider_h-10);
+    }
   }
 }
 
@@ -501,7 +505,7 @@ class Feature {
   }
 
   loadFeatTable(){
-    this.f_tab = loadTable('./assets/' + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+    this.f_tab = loadTable(f_folder + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
   }
 
   loadInfoFromTable = (loadedtable) => {

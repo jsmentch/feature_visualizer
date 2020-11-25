@@ -1,0 +1,22 @@
+{
+  "name": "feature_njs",
+  "version": "1.0.0",
+  "description": "A p5js sketch to visualize audioset features extracted from naturalistic movie stimuli",
+  "main": "p5.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsmentch/feature_auditor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jsmentch/feature_auditor/issues"
+  },
+  "homepage": "https://github.com/jsmentch/feature_auditor#readme",
+  "dependencies": {
+    "file-system": "^2.2.2"
+  }
+}
