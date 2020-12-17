@@ -47,11 +47,14 @@ let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
+this.feature_sr = 10; // srampling rate of feature, default to 10hz
 
 let stimuli_name = '';
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
-let feat_names = ['id_1_mqc',
+let feat_names = ['',
+'new_feature',
+'id_1_mqc',
 'id_2_mqc',
 'id_3_mqc',
 'id_4_mqc',
@@ -307,11 +310,12 @@ function exportFeature() { // export the current edited feature as a csv
 }
 
 function featSelect() { //called when you select a feature to visualize
-  print(sel.value());
-  f_id = sel.value();
-  feature_n = feature_n + 1; //total number of features
-  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  features[feature_n-1].loadFeatTable();
+  if (sel.value() !== ''){
+    f_id = sel.value();
+    feature_n = feature_n + 1; //total number of features
+    features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+    features[feature_n-1].loadFeatTable();
+  }
 }
 
 function drawColumnLines() {
@@ -479,7 +483,6 @@ function drawAxisX(){
 function handleVideo(file) {
   if (file.type === 'video') {
     vid_loaded = true;
-    print(file);
     vid = createVideo(file.data,vidLoad);
     vid.position(0,0);
     vid.hide();
@@ -500,17 +503,36 @@ class Feature {
   this.feature_n = feature_n;
   colorMode(HSB, 360, 100, 100, 100);
   this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
-  print(this.f_id);
-  print(this.c);
   }
 
   loadFeatTable(){
-    this.f_tab = loadTable(f_folder + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+
+    if (this.f_id !== 'new_feature') {
+      this.f_tab = loadTable(f_folder + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+    } else {
+      editing = false;
+      toggleEdit();
+      this.createNewFeature()
+      this.loadInfoFromTable(this.f_tab)
+    }
+  }
+
+  createNewFeature() {
+    let table = new p5.Table();
+    table.addColumn("onset");
+    table.addColumn("value");
+    for (let r = 1; r < Math.floor(duration_s*feature_sr); r++) {
+      // Create new row object 
+      let newRow = table.addRow(); 
+      // Add data to it using setString() 
+      newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1))); 
+      newRow.setString("value",0);
+    }
+    this.f_tab = table;
   }
 
   loadInfoFromTable = (loadedtable) => {
     let f_tab = loadedtable;
-    print('loaded?');
     //print(loadedtable.getColumn(0));
     //getMinMaxTime
     //this.feature_vals_time = loadedtable.getColumn(0);
@@ -523,6 +545,8 @@ class Feature {
     let feature_vals = loadedtable.getColumn(1);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
+
+    print(feature_vals)
 
     //drawFeatureDetailed(){
     canvas2.fill(this.c);
@@ -544,8 +568,6 @@ class Feature {
 
     //drawMetaData() {
     let meta_h = 12+ 57 *(this.feature_n-1);
-    print(this.feature_n);
-    print(meta_h);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
