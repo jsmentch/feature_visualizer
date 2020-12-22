@@ -1,7 +1,8 @@
-let vid; //video object
+let vid = null; //video object
 let vid_loaded = false;
 
 let f_id = 'dummy'; // start on a dummy feature for now...
+let f_folder = './assets/edits/'
 
 let features = [];
 let feature_color = [];
@@ -42,13 +43,18 @@ let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = 1513; //stimulus duration in seconds - updated in setup()
+let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
+this.feature_sr = 10; // srampling rate of feature, default to 10hz
+
+let stimuli_name = '';
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
-let feat_names = ['id_1_mqc',
+let feat_names = ['',
+'new_feature',
+'id_1_mqc',
 'id_2_mqc',
 'id_3_mqc',
 'id_4_mqc',
@@ -210,6 +216,7 @@ function setup() {
   for (let i = 0; i < feat_names.length; i++) {
     sel.option(feat_names[i]);
   }
+
   sel.selected(f_id);
   sel.changed(featSelect);
 
@@ -302,11 +309,12 @@ function exportFeature() { // export the current edited feature as a csv
 }
 
 function featSelect() { //called when you select a feature to visualize
-  print(sel.value());
-  f_id = sel.value();
-  feature_n = feature_n + 1; //total number of features
-  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  features[feature_n-1].loadFeatTable();
+  if (sel.value() !== ''){
+    f_id = sel.value();
+    feature_n = feature_n + 1; //total number of features
+    features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+    features[feature_n-1].loadFeatTable();
+  }
 }
 
 function drawColumnLines() {
@@ -319,14 +327,13 @@ function drawColumnLines() {
 }
 
 function drawPanelLabels() {
-  canvas3.fill(200);
+  canvas3.fill(200)
   canvas3.textSize(15);
   canvas3.text("Coarse Timeline",2,vid_h-2);
   canvas3.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas3.stroke(0);
   canvas3.strokeWeight(1);
   canvas3.fill(255);
-  canvas3.text("stimulus: Merlin_Movie",3,12);
 }
 
 function drawCurrentTime() {
@@ -341,8 +348,7 @@ function drawCurrentTime() {
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
   // add seconds elapse
   textSize(10);
-  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60); 
-
+  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
 }
 function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   if (!playing){
@@ -377,8 +383,18 @@ function mousePressed() {
     else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+
     }
   }
+}
+    
+function mouseDragged() {
+    var eventDoc, doc, body;
+    //navigation in fine window
+    if (!editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+      let cur_t = vid.time();
+      vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+    }
 }
 
 function toggleVid() {
@@ -436,40 +452,49 @@ function getCoarseVals(r){
 
 //draw axis labels to canvas2
 function drawAxisX(){
-  canvas2.stroke(250);
-  canvas2.strokeWeight(0.7);
-  canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
-  for (let i=0; i < 11; i++) { 
-    let xPos = (0 + (i*column1_w/10));
-//x ticks    
+
+  if (duration_s > 0) {
     canvas2.stroke(250);
     canvas2.strokeWeight(0.7);
-    canvas2.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
-//x tick labels
-    canvas2.textSize(10);
-    canvas2.stroke(250);
-    canvas2.strokeWeight(0);
-    canvas2.fill(255);
-    canvas2.textAlign(CENTER, CENTER);
-    canvas2.translate(xPos,vid_h+slider_h+10);
-    canvas2.rotate(PI/6);
-    cur_time = i*duration_s/10;
-    canvas2.text(secondsToMinSec(cur_time),2,0);
-    canvas2.rotate(-PI/6);
-    canvas2.translate(-xPos,-vid_h-slider_h-10);
+    canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
+    for (let i=0; i < 11; i++) { 
+      let xPos = (0 + (i*column1_w/10));
+  //x ticks    
+      canvas2.stroke(250);
+      canvas2.strokeWeight(0.7);
+      canvas2.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
+  //x tick labels
+      canvas2.textSize(10);
+      canvas2.stroke(250);
+      canvas2.strokeWeight(0);
+      canvas2.fill(255);
+      canvas2.textAlign(CENTER, CENTER);
+      canvas2.translate(xPos,vid_h+slider_h+10);
+      canvas2.rotate(PI/6);
+      cur_time = i*duration_s/10;
+      canvas2.text(secondsToMinSec(cur_time),2,0);
+      canvas2.rotate(-PI/6);
+      canvas2.translate(-xPos,-vid_h-slider_h-10);
+    }
   }
 }
 
 function handleVideo(file) {
   if (file.type === 'video') {
     vid_loaded = true;
-    print(file);
-    vid = createVideo(file.data);
-    let duration_s = vid.duration();
+    vid = createVideo(file.data,vidLoad);
     vid.position(0,0);
     vid.hide();
+    canvas3.text("Stimuli: ".concat(file.name),3,12);
+    vid.preload = 'metadata';
   }
 }
+
+function vidLoad() {
+  duration_s = vid.duration();
+  drawAxisX();
+}
+
 
 class Feature {
   constructor(f_id,feature_n) {
@@ -477,17 +502,36 @@ class Feature {
   this.feature_n = feature_n;
   colorMode(HSB, 360, 100, 100, 100);
   this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
-  print(this.f_id);
-  print(this.c);
   }
 
   loadFeatTable(){
-    this.f_tab = loadTable('./assets/' + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+
+    if (this.f_id !== 'new_feature') {
+      this.f_tab = loadTable(f_folder + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+    } else {
+      editing = false;
+      toggleEdit();
+      this.createNewFeature()
+      this.loadInfoFromTable(this.f_tab)
+    }
+  }
+
+  createNewFeature() {
+    let table = new p5.Table();
+    table.addColumn("onset");
+    table.addColumn("value");
+    for (let r = 1; r < Math.floor(duration_s*feature_sr); r++) {
+      // Create new row object 
+      let newRow = table.addRow(); 
+      // Add data to it using setString() 
+      newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1))); 
+      newRow.setString("value",0);
+    }
+    this.f_tab = table;
   }
 
   loadInfoFromTable = (loadedtable) => {
     let f_tab = loadedtable;
-    print('loaded?');
     //print(loadedtable.getColumn(0));
     //getMinMaxTime
     //this.feature_vals_time = loadedtable.getColumn(0);
@@ -500,6 +544,8 @@ class Feature {
     let feature_vals = loadedtable.getColumn(1);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
+
+    print(feature_vals)
 
     //drawFeatureDetailed(){
     canvas2.fill(this.c);
@@ -521,8 +567,6 @@ class Feature {
 
     //drawMetaData() {
     let meta_h = 12+ 57 *(this.feature_n-1);
-    print(this.feature_n);
-    print(meta_h);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
