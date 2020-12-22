@@ -276,10 +276,9 @@ function keyPressed() {
   if (keyCode === 50) { //2
     normal_speed();
   }
-  // Was returning some ReferenceError
-  // if (keyCmouseispressedode === 51) { //3
-  //   twice_speed();
-  // }
+  if (keyCode === 51) { //3
+    twice_speed();
+  }
   if (keyCode === 77) { //m
     mute_sound();
   }
