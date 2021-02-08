@@ -47,7 +47,7 @@ let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
-this.feature_sr = 10; // srampling rate of feature, default to 10hz
+feature_sr = 10; // srampling rate of feature, default to 10hz
 
 let stimuli_name = '';
 
@@ -169,8 +169,12 @@ function setup() {
 
   // video load button
   button_load = createFileInput(handleVideo);
-  button_load.position(canvas_w, 0);
-  // video play button
+  button_load.position(canvas_w, 200);
+
+}
+
+function setup2() {
+	  // video play button
   button_play = createButton('play');
   button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
@@ -204,7 +208,7 @@ function setup() {
   edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
   edit_instructions.position(canvas_w, 340);
 
-  input_export_name = createInput('edited_feature.csv');
+  input_export_name = createInput('edited_feature.tsv');
   input_export_name.position(canvas_w, 390);
 
   button_export_feature = createButton('export current feature');
@@ -230,6 +234,8 @@ function setup() {
   drawAxisX();
 
 }
+
+
 function draw() {
   background(0);
   if (completion == 1) {
@@ -240,7 +246,7 @@ function draw() {
     completion = vid.time() / vid.duration();
     noStroke();
     fill(0,100,100); // slider bar
-    rect(completion*column1_w, vid_h, 1, slider_h); 
+    rect(completion*column1_w, vid_h, 3, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     for (let i = 0; i < feature_n; i++) {
       features[i].drawFeatureSliding();
@@ -487,6 +493,8 @@ function handleVideo(file) {
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
     vid.preload = 'metadata';
+    button_load.hide()
+    setup2();
   }
 }
 
@@ -593,7 +601,7 @@ class Feature {
   } 
   //export edited table to csv
   exportFeatureTable = (input_export_name) => {
-    saveTable(this.f_tab, input_export_name)
+    saveTable(this.f_tab, input_export_name, "tsv")
   }
 
   drawFeatureSliding = () => {
