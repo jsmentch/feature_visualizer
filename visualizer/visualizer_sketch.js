@@ -240,7 +240,7 @@ function draw() {
     completion = vid.time() / vid.duration();
     noStroke();
     fill(0,100,100); // slider bar
-    rect(completion*column1_w, vid_h, 1, slider_h); 
+    rect(completion*column1_w, vid_h, 3, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     for (let i = 0; i < feature_n; i++) {
       features[i].drawFeatureSliding();
