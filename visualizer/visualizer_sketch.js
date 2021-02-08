@@ -47,7 +47,7 @@ let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
-this.feature_sr = 10; // srampling rate of feature, default to 10hz
+feature_sr = 10; // srampling rate of feature, default to 10hz
 
 let stimuli_name = '';
 
@@ -169,8 +169,12 @@ function setup() {
 
   // video load button
   button_load = createFileInput(handleVideo);
-  button_load.position(canvas_w, 0);
-  // video play button
+  button_load.position(canvas_w, 200);
+
+}
+
+function setup2() {
+	  // video play button
   button_play = createButton('play');
   button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
@@ -230,6 +234,8 @@ function setup() {
   drawAxisX();
 
 }
+
+
 function draw() {
   background(0);
   if (completion == 1) {
@@ -487,6 +493,8 @@ function handleVideo(file) {
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
     vid.preload = 'metadata';
+    button_load.hide()
+    setup2();
   }
 }
 
