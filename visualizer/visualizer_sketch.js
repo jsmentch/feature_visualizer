@@ -54,6 +54,8 @@ let stimuli_name = '';
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
 let feat_names = ['',
 'new_feature',
+'a_sub-19_task-MerlinMovie_events',
+'a_sub-22_task-MerlinMovie_events',
 'id_1_mqc',
 'id_2_mqc',
 'id_3_mqc',
@@ -515,7 +517,7 @@ class Feature {
   loadFeatTable(){
 
     if (this.f_id !== 'new_feature') {
-      this.f_tab = loadTable(f_folder + String(this.f_id) + '.csv', 'csv', this.loadInfoFromTable);
+      this.f_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
     } else {
       editing = false;
       toggleEdit();
@@ -527,6 +529,7 @@ class Feature {
   createNewFeature() {
     let table = new p5.Table();
     table.addColumn("onset");
+    table.addColumn("duration");
     table.addColumn("value");
     for (let r = 1; r < Math.floor(duration_s*feature_sr); r++) {
       // Create new row object 
@@ -549,7 +552,7 @@ class Feature {
     // let max_feat_time = max(loadedtable.getColumn(0));
     //print(loadedtable.getColumn(1));
     // getMinMax
-    let feature_vals = loadedtable.getColumn(1);
+    let feature_vals = loadedtable.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
 
