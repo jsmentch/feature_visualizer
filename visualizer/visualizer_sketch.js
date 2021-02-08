@@ -2,7 +2,7 @@ let vid = null; //video object
 let vid_loaded = false;
 
 let f_id = 'dummy'; // start on a dummy feature for now...
-let f_folder = './assets/edits/'
+let f_folder = './assets/'
 
 let features = [];
 let feature_color = [];
