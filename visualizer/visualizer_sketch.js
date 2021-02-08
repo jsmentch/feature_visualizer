@@ -567,10 +567,10 @@ class Feature {
       //let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w); //map x time from s to px x
       let px = map(r-1, 0, f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
 
-      let py = vid_h+slider_h - map(f_tab.getString(r-1, 1), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
+      let py = vid_h+slider_h - map(f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
       //let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
       let x = map(r, 0, f_tab.getRowCount(), 0, column1_w);
-      let y = vid_h+slider_h - map(f_tab.getString(r, 1), min_feat, max_feat, 0, 74);
+      let y = vid_h+slider_h - map(f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
     }
     //}
@@ -600,7 +600,7 @@ class Feature {
   //edit the feature value in the table
   editValue = (new_feat_time,new_feat_val) => {
     let edit_time = round(map(new_feat_time, 0, 1, 0, float(this.f_tab.getRowCount())));
-    this.f_tab.set(edit_time,1,new_feat_val);
+    this.f_tab.set(edit_time,2,new_feat_val);
   } 
   //export edited table to csv
   exportFeatureTable = (input_export_name) => {
@@ -636,9 +636,9 @@ class Feature {
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
-        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 1), 0, 1, 0, 100);
+        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), 0, 1, 0, 100);
         let x = map(completion+i+1, 0, 100, 0, column1_w);
-        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 1), 0, 1, 0, 100);
+        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), 0, 1, 0, 100);
         line(px, py, x, y);
       }
     } 
@@ -656,7 +656,7 @@ class Feature {
     let current_rowindex = round(map(completion, 0, 1, 0, float(this.f_tab.getRowCount())));
     //turn this into a bar plot of sorts
     if (current_rowindex<this.f_tab.getRowCount()){
-      let current_val = this.f_tab.getString(current_rowindex, 1);
+      let current_val = this.f_tab.getString(current_rowindex, 2);
       current_val = map(current_val,0,1,0,100)
       stroke(this.c);
       fill(this.c);
