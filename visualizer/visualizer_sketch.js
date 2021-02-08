@@ -204,7 +204,7 @@ function setup() {
   edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
   edit_instructions.position(canvas_w, 340);
 
-  input_export_name = createInput('edited_feature.csv');
+  input_export_name = createInput('edited_feature.tsv');
   input_export_name.position(canvas_w, 390);
 
   button_export_feature = createButton('export current feature');
@@ -593,7 +593,7 @@ class Feature {
   } 
   //export edited table to csv
   exportFeatureTable = (input_export_name) => {
-    saveTable(this.f_tab, input_export_name)
+    saveTable(this.f_tab, input_export_name, "tsv")
   }
 
   drawFeatureSliding = () => {
