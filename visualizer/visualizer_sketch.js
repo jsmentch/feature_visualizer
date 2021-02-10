@@ -172,15 +172,21 @@ function setup() {
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
   // video load button
+  button_load_instructions = createP('Select a local video file of the stimulus');
+  button_load_instructions.position(canvas_w, 150);
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 200);
 
+  button_dummy_instructions = createP('or, use a blank placeholder');
+  button_dummy_instructions.position(canvas_w, 250);
   button_dummy = createButton('handleDummy');
-  button_dummy.position(canvas_w, 250);
+  button_dummy.position(canvas_w, 300);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
-  offset_set = createInput('offset time (s) e.g. how long after the scan started did the movie start');
-  offset_set.position(canvas_w, 280);
+  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start');
+  offset_set_instructions.position(canvas_w, 350);
+  offset_set = createInput('');
+  offset_set.position(canvas_w, 400);
 }
 
 function setup2() {
@@ -232,12 +238,6 @@ function setup2() {
   }
   sel.selected(f_id);
   sel.changed(featSelect);
-  // Set Up feature(s)
-
-  // features[feature_n-1] = new Feature(f_id, feature_n);
-  // features[feature_n-1].loadFeatTable()
-
-  //draw column1/2 line to background renderer
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
@@ -444,12 +444,8 @@ function getCoarseVals(r){
   return px_avg;
 }
 
-// this freezes things near the end - fix 
-// cant get string of undefined
-
 //draw axis labels to canvas2
 function drawAxisX(){
-
   if (duration_s > 0) {
     canvas2.stroke(250);
     canvas2.strokeWeight(0.7);
@@ -476,15 +472,22 @@ function drawAxisX(){
   }
 }
 
+function hideSplash() {
+  button_load_instructions.hide();
+  button_load.hide();
+  button_dummy_instructions.hide();
+  button_dummy.hide();
+  offset_set.hide();
+  offset_set_instructions.hide();
+}
+
 function handleDummy() {
   vid_loaded = true;
   vid = createVideo(['./assets/dummy.mp4'],dummyLoad);
   vid.position(0,0);
   vid.hide();
   canvas3.text("Stimuli: Placeholder",3,12);
-  button_load.hide();
-  button_dummy.hide();
-  offset_set.hide();
+  hideSplash()
   setup2();
 }
 
@@ -502,9 +505,7 @@ function handleVideo(file) {
     vid.position(0,0);
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
-    button_load.hide();
-    button_dummy.hide();
-    offset_set.hide();
+    hideSplash()
     setup2();
   }
 }
