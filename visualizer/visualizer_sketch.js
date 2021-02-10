@@ -261,6 +261,7 @@ function draw() {
     image(canvas3,0,0); //display overlay canvas
   }
   // edit mode stuff - break into fn?
+  scrub();
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //get time point to edit from mouse location
     if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
@@ -374,10 +375,10 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   }
 }
 
-function mousePressed() {
+function scrub() {
   //navigation in coarse window
   if (!editing) { // if edit mode is off, do allow skipping
-    if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
+    if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
       if (!playing) {
         //vid.play();
         vid.time((mouseX/column1_w) * vid.duration());
@@ -390,9 +391,9 @@ function mousePressed() {
       }
     }
     //navigation in fine window
-    else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+    else if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
-      vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+      vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
 
     }
   }
