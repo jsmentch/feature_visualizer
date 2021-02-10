@@ -16,7 +16,6 @@ let button_play;
 let button_load;
 let button_mute;
 
-//let f_tab; //table of feature values
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
 
@@ -170,11 +169,9 @@ function setup() {
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
-
   // video load button
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 200);
-
 }
 
 function setup2() {
@@ -224,21 +221,16 @@ function setup2() {
   for (let i = 0; i < feat_names.length; i++) {
     sel.option(feat_names[i]);
   }
-
   sel.selected(f_id);
   sel.changed(featSelect);
-
   // Set Up feature(s)
   features[feature_n-1] = new Feature(f_id, feature_n);
   features[feature_n-1].loadFeatTable()
-
   //draw column1/2 line to background renderer
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
-
 }
-
 
 function draw() {
   background(0);
@@ -379,34 +371,15 @@ function scrub() {
   //navigation in coarse window
   if (!editing) { // if edit mode is off, do allow skipping
     if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
-      if (!playing) {
-        //vid.play();
-        vid.time((mouseX/column1_w) * vid.duration());
-        //playing = true;
-      }
-      else {
-        //vid.pause();
-        vid.time((mouseX/column1_w) * vid.duration());
-        //playing = false;
-      }
+      vid.time((mouseX/column1_w) * vid.duration());
     }
     //navigation in fine window
     else if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
-
     }
   }
 }
-    
-// function mouseDragged() {
-//     var eventDoc, doc, body;
-//     //navigation in fine window
-//     if (!editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
-//       let cur_t = vid.time();
-//       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
-//     }
-// }
 
 function toggleVid() {
   if (playing) {
@@ -508,7 +481,6 @@ function vidLoad() {
   drawAxisX();
 }
 
-
 class Feature {
   constructor(f_id,feature_n) {
   this.f_id = f_id;
@@ -516,24 +488,11 @@ class Feature {
   colorMode(HSB, 360, 100, 100, 100);
   this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
   }
-
   loadFeatTable(){
     this.createNewFeature()
     this.load_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
     this.loadInfoFromTable(this.load_tab)
   }
-// version that starts editing mode if a new feature.
-  // loadFeatTable(){
-  //   if (this.f_id !== 'new_feature') {
-  //     this.f_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
-  //   } else {
-  //     editing = false;
-  //     toggleEdit();
-  //     this.createNewFeature()
-  //     this.loadInfoFromTable(this.f_tab)
-  //   }
-  // }
-
   createNewFeature() {
     let table = new p5.Table();
     table.addColumn("onset");
@@ -552,7 +511,6 @@ class Feature {
 
   loadInfoFromTable = (loadedtable) => {
     let load_tab = loadedtable;
-
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
       //console.log(r);
       let load_tab_onset = load_tab.get(r,0)-offset;
@@ -564,28 +522,9 @@ class Feature {
         }
       }
     }
-    
-  //   drawInfoFromTable()
-  //     // newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1))); 
-  //     // newRow.setString("value",0);
-
-  // drawInfoFromTable(){
-    //print(loadedtable.getColumn(0));
-    //getMinMaxTime
-    //this.feature_vals_time = loadedtable.getColumn(0);
-    //print(this.feature_vals_time[1]);
-    //print(min(loadedtable.getColumn(0)));
-    // let min_feat_time = min(loadedtable.getColumn(0));
-    // let max_feat_time = max(loadedtable.getColumn(0));
-    //print(loadedtable.getColumn(1));
-    // getMinMax
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
-
-    //print(feature_vals)
-
-    //drawFeatureDetailed(){
     canvas2.fill(this.c);
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
@@ -600,8 +539,6 @@ class Feature {
       let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
   }
-    //}
-
 
     //drawMetaData() {
     let meta_h = 12+ 57 *(this.feature_n-1);
@@ -640,15 +577,6 @@ class Feature {
       completion = 0;
     }
     let current_rowindex = round(map(completion, 0, 1, 0, float(this.f_tab.getRowCount()))) - 50;
-    
-  // try to get the feature alignment right based on true movie time +/- offset
-    //current_rowindex = time 
-//add offset parameter?
-    // var closest = f_tab.getColumn(0).reduce(function(prev, curr) {
-    //   return (Math.abs(curr - time) < Math.abs(prev - time) ? curr : prev);
-    // });
-    // print(closest);
-
     //Add Current Time
     stroke(50);
     strokeWeight(2);
@@ -659,7 +587,6 @@ class Feature {
     let time_s = (time % 60);
     text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, vid_h+slider_h+150); 
     stroke(this.c);
-
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
