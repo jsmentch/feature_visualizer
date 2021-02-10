@@ -1,3 +1,5 @@
+let offset = 25.5; // merlin movie started at 25.5 seconds..
+
 let vid = null; //video object
 let vid_loaded = false;
 
@@ -396,14 +398,14 @@ function mousePressed() {
   }
 }
     
-function mouseDragged() {
-    var eventDoc, doc, body;
-    //navigation in fine window
-    if (!editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
-      let cur_t = vid.time();
-      vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
-    }
-}
+// function mouseDragged() {
+//     var eventDoc, doc, body;
+//     //navigation in fine window
+//     if (!editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+//       let cur_t = vid.time();
+//       vid.time(cur_t+map((mouseX/column1_w),0,1,-5,5));
+//     }
+// }
 
 function toggleVid() {
   if (playing) {
@@ -540,7 +542,8 @@ class Feature {
       // Create new row object 
       let newRow = table.addRow(); 
       // Add data to it using setString() 
-      newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1))); 
+      newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1)));
+      newRow.setString("duration",0.1);
       newRow.setString("value",0);
     }
     this.f_tab = table;
@@ -551,12 +554,11 @@ class Feature {
 
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
       //console.log(r);
-      let load_tab_onset = load_tab.get(r,0);
+      let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
       for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
         if (m < duration_s) {
-          //console.log(m)  ;
           this.f_tab.setString(round(m*10),2,load_tab_value);
         }
       }
@@ -580,7 +582,7 @@ class Feature {
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
 
-    print(feature_vals)
+    //print(feature_vals)
 
     //drawFeatureDetailed(){
     canvas2.fill(this.c);
