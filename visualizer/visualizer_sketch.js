@@ -47,7 +47,7 @@ let duration_s = -1; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
-feature_sr = 10; // srampling rate of feature, default to 10hz
+let feature_sr = 10; // srampling rate of feature, default to 10hz
 
 let stimuli_name = '';
 
@@ -515,16 +515,21 @@ class Feature {
   }
 
   loadFeatTable(){
-
-    if (this.f_id !== 'new_feature') {
-      this.f_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
-    } else {
-      editing = false;
-      toggleEdit();
-      this.createNewFeature()
-      this.loadInfoFromTable(this.f_tab)
-    }
+    this.createNewFeature()
+    this.load_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
+    this.loadInfoFromTable(this.load_tab)
   }
+// version that starts editing mode if a new feature.
+  // loadFeatTable(){
+  //   if (this.f_id !== 'new_feature') {
+  //     this.f_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
+  //   } else {
+  //     editing = false;
+  //     toggleEdit();
+  //     this.createNewFeature()
+  //     this.loadInfoFromTable(this.f_tab)
+  //   }
+  // }
 
   createNewFeature() {
     let table = new p5.Table();
@@ -542,7 +547,26 @@ class Feature {
   }
 
   loadInfoFromTable = (loadedtable) => {
-    let f_tab = loadedtable;
+    let load_tab = loadedtable;
+
+    for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
+      //console.log(r);
+      let load_tab_onset = load_tab.get(r,0);
+      let load_tab_duration = load_tab.get(r,1);
+      let load_tab_value = load_tab.get(r,2);
+      for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
+        if (m < duration_s) {
+          //console.log(m)  ;
+          this.f_tab.setString(round(m*10),2,load_tab_value);
+        }
+      }
+    }
+    
+  //   drawInfoFromTable()
+  //     // newRow.setString("onset",parseFloat(((r-1)*(1.0/feature_sr)).toFixed(1))); 
+  //     // newRow.setString("value",0);
+
+  // drawInfoFromTable(){
     //print(loadedtable.getColumn(0));
     //getMinMaxTime
     //this.feature_vals_time = loadedtable.getColumn(0);
@@ -552,7 +576,7 @@ class Feature {
     // let max_feat_time = max(loadedtable.getColumn(0));
     //print(loadedtable.getColumn(1));
     // getMinMax
-    let feature_vals = loadedtable.getColumn(2);
+    let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
 
@@ -562,17 +586,17 @@ class Feature {
     canvas2.fill(this.c);
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
-    for (let r = 1; r < f_tab.getRowCount(); r++) {
+    for (let r = 1; r < this.f_tab.getRowCount(); r++) {
       // print(f_tab.getRowCount());
       //let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w); //map x time from s to px x
-      let px = map(r-1, 0, f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
+      let px = map(r-1, 0, this.f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
 
-      let py = vid_h+slider_h - map(f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
+      let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
       //let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
-      let x = map(r, 0, f_tab.getRowCount(), 0, column1_w);
-      let y = vid_h+slider_h - map(f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
+      let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
+      let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
-    }
+  }
     //}
 
 
