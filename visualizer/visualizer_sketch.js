@@ -3,12 +3,14 @@ let offset = 25.5; // merlin movie started at 25.5 seconds..
 let vid = null; //video object
 let vid_loaded = false;
 
+let feat_selected = false;
+
 let f_id = 'dummy'; // start on a dummy feature for now...
 let f_folder = './assets/'
 
 let features = [];
 let feature_color = [];
-feature_n = 1;
+let feature_n = 0;
 
 let instructions; //html text instrucitons
 
@@ -38,11 +40,12 @@ let max_feat;
 let new_feature = 1; //now unused
 
 //time info
+let vid_speed =1;
 let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = -1; //stimulus duration in seconds - updated in setup()
+let duration_s = 1538; //stimulus duration in seconds - updated in setup()
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
@@ -160,6 +163,7 @@ function preload() {
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
   //test video
   //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
+
 }
 
 function setup() {
@@ -171,8 +175,12 @@ function setup() {
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 200);
 
+  button_dummy = createButton('handleDummy');
+  button_dummy.position(canvas_w, 250);
+  button_dummy.mousePressed(handleDummy); // attach button listener
+
   offset_set = createInput('offset time (s) e.g. how long after the scan started did the movie start');
-  offset_set.position(canvas_w, 250);
+  offset_set.position(canvas_w, 280);
 }
 
 function setup2() {
@@ -225,8 +233,10 @@ function setup2() {
   sel.selected(f_id);
   sel.changed(featSelect);
   // Set Up feature(s)
-  features[feature_n-1] = new Feature(f_id, feature_n);
-  features[feature_n-1].loadFeatTable()
+
+  // features[feature_n-1] = new Feature(f_id, feature_n);
+  // features[feature_n-1].loadFeatTable()
+
   //draw column1/2 line to background renderer
   drawColumnLines();
   drawPanelLabels();
@@ -245,9 +255,11 @@ function draw() {
     fill(0,100,100); // slider bar
     rect(completion*column1_w, vid_h, 3, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
-    for (let i = 0; i < feature_n; i++) {
-      features[i].drawFeatureSliding();
-      features[i].drawInstantaneous();  
+    if (feat_selected) {
+      for (let i = 0; i < feature_n; i++) {
+        features[i].drawFeatureSliding();
+        features[i].drawInstantaneous();  
+      }
     }
     drawCurrentTime();
     drawGraphicOverlay();
@@ -414,13 +426,13 @@ function mute_sound() {
   muted = !muted;
 }
 function normal_speed() {
-  vid.speed(1);
+  vid.speed(vid_speed);
 }
 function twice_speed() {
-  vid.speed(2);
+  vid.speed(vid_speed*2);
 }
 function half_speed() {
-  vid.speed(0.5);
+  vid.speed(vid_speed*0.5);
 }
 
 function getCoarseVals(r){
@@ -464,6 +476,25 @@ function drawAxisX(){
   }
 }
 
+function handleDummy() {
+  vid_loaded = true;
+  vid = createVideo(['./assets/dummy.mp4'],dummyLoad);
+  vid.position(0,0);
+  vid.hide();
+  canvas3.text("Stimuli: Placeholder",3,12);
+  button_load.hide();
+  button_dummy.hide();
+  offset_set.hide();
+  setup2();
+}
+
+function dummyLoad() {
+  dummy_duration_s = vid.duration();
+  vid_speed = dummy_duration_s/duration_s; // if loading dummy vid, set new base video speed
+  vid.speed(vid_speed);
+  drawAxisX();
+}
+
 function handleVideo(file) {
   if (file.type === 'video') {
     vid_loaded = true;
@@ -471,8 +502,8 @@ function handleVideo(file) {
     vid.position(0,0);
     vid.hide();
     canvas3.text("Stimuli: ".concat(file.name),3,12);
-    vid.preload = 'metadata';
     button_load.hide();
+    button_dummy.hide();
     offset_set.hide();
     setup2();
   }
@@ -480,6 +511,7 @@ function handleVideo(file) {
 
 function vidLoad() {
   duration_s = vid.duration();
+  vid_speed = 1;
   drawAxisX();
 }
 
@@ -491,9 +523,9 @@ class Feature {
   this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
   }
   loadFeatTable(){
-    this.createNewFeature()
-    this.load_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable);
-    this.loadInfoFromTable(this.load_tab)
+    this.createNewFeature(); //make a new blank table at given sr and duration
+    this.load_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable); //load specified feature table
+    //this.loadInfoFromTable(this.load_tab);
   }
   createNewFeature() {
     let table = new p5.Table();
@@ -514,7 +546,6 @@ class Feature {
   loadInfoFromTable = (loadedtable) => {
     let load_tab = loadedtable;
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
-      //console.log(r);
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
@@ -540,8 +571,7 @@ class Feature {
       let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
       let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
-  }
-
+    }
     //drawMetaData() {
     let meta_h = 12+ 57 *(this.feature_n-1);
     canvas3.stroke(this.c);
@@ -562,6 +592,7 @@ class Feature {
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
+    feat_selected = true; //the feature is slected and loaded, so draw it now
   }
   //edit the feature value in the table
   editValue = (new_feat_time,new_feat_val) => {
