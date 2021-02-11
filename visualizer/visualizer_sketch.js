@@ -60,11 +60,15 @@ let feat_names = ['',
 'a_sub-22_task-MerlinMovie_events']
 
 let datasets;
+let ds_ind;
 let sel_ds;
 let sel_task;
 let ds_dict;
 let task_id;
 let sel_predictor;
+let predictor_dict;
+let predictor_id;
+let runs;
 
 function preload() {
   //my table is comma separated value "csv"
@@ -80,8 +84,8 @@ function preload() {
   let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
   datasets = loadJSON(datasets_url)
 }
-
 function setup() {
+  console.log(datasets);
   let dataset_count = Object.keys(datasets).length;
   sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
   sel_ds_instructions.position(canvas_w, 50);
@@ -102,11 +106,16 @@ function setup() {
   sel_task.option('Select a task');
   sel_task.selected('Select a task');
   sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 140);
+  sel_predictor.position(canvas_w, 150);
   sel_predictor.option('Select a predictor');
   sel_predictor.selected('Select a predictor');
+  sel_run = createSelect();
+  sel_run.position(canvas_w, 175);
+  sel_run.option('Select a run');
+  sel_run.selected('Select a run');
   sel_task.hide();
   sel_predictor.hide();
+  sel_run.hide();
 
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -114,20 +123,20 @@ function setup() {
   canvas3.clear();
   // video load button
   button_load_instructions = createP('Select a local video file of the stimulus');
-  button_load_instructions.position(canvas_w, 150);
+  button_load_instructions.position(canvas_w, 350);
   button_load = createFileInput(handleVideo);
-  button_load.position(canvas_w, 200);
+  button_load.position(canvas_w, 400);
 
   button_dummy_instructions = createP('or, use a blank placeholder');
-  button_dummy_instructions.position(canvas_w, 250);
+  button_dummy_instructions.position(canvas_w, 450);
   button_dummy = createButton('handleDummy');
-  button_dummy.position(canvas_w, 300);
+  button_dummy.position(canvas_w, 500);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
   offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start');
-  offset_set_instructions.position(canvas_w, 350);
+  offset_set_instructions.position(canvas_w, 550);
   offset_set = createInput('');
-  offset_set.position(canvas_w, 400);
+  offset_set.position(canvas_w, 600);
 }
 
 function setup2() {
@@ -276,7 +285,7 @@ function featSelect() { //called when you select a feature to visualize
 
 function dsSelect() { //called when you select a neuroscout dataset
   if (sel_ds.value() !== ''){
-    let ds_ind = ds_dict.get(sel_ds.value()); //ds index
+    ds_ind = ds_dict.get(sel_ds.value()); //ds index
     let task_count = datasets[ds_ind].tasks.length;
     sel_task.remove();
     sel_task = createSelect();
@@ -290,6 +299,7 @@ function dsSelect() { //called when you select a neuroscout dataset
       sel_task.changed(taskSelect);
     }
     sel_predictor.hide();
+    sel_run.hide();
   }
 }
 
@@ -304,7 +314,7 @@ function taskSelect() { //called when you select a neuroscout task
 function predictorsLoaded(){ //called when you load predictors for a selected task
   sel_predictor.remove();
   sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 140);
+  sel_predictor.position(canvas_w, 150);
   sel_predictor.option('Select a predictor');
   sel_predictor.selected('Select a predictor');
   let predictor_count = Object.keys(predictors).length;
@@ -314,12 +324,40 @@ function predictorsLoaded(){ //called when you load predictors for a selected ta
     predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
   }
   loading_text.remove();
-  sel_task.changed(predictorSelect);
+  sel_predictor.changed(predictorSelect);
+  console.log(predictors);
 }
 
-function predictorSelect(){
-
+function predictorSelect(){ //called when a predictor is selected
+  predictor_id = predictor_dict.get(sel_predictor.value());
+  loading_text = createP('LOADING');
+  loading_text.position(canvas_w-100, 50);
+  console.log(predictor_id);
+  let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
+  runs = loadJSON(run_url, runLoaded);
 }
+
+function runLoaded() {
+  sel_run.remove();
+  sel_run = createSelect();
+  sel_run.position(canvas_w, 175);
+  sel_run.option('Select a run');
+  sel_run.selected('Select a run');
+  let run_count = Object.keys(predictors).length;
+  run_dict = new p5.TypedDict();
+  for (let r_n = 0; r_n < run_count; r_n++) {
+    console.log(runs[r_n].id);
+    sel_run.option(runs[r_n].id);
+    //run_dict.create(runs[r_n].id, runs[r_n].id);
+  }
+  loading_text.remove();
+  sel_run.changed(runSelect);
+  console.log(runs);
+}
+
+
+
+
 
 function drawColumnLines() {
   canvas2.stroke(75);
