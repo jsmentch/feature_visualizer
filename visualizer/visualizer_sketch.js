@@ -345,7 +345,7 @@ function runLoaded() { //after selecting a task, runs are loaded
     //run_dict.create(runs[r_n].id, runs[r_n].id);
   }
   sel_run.changed(runSelect);
-  console.log(runs);
+  //console.log(runs);
 }
 
 function runSelect(){ //called when a run is selected
@@ -377,13 +377,32 @@ function predictorSelect(){ //called when a predictor is selected
   predictor_id = predictor_dict.get(sel_predictor.value());
   loading_text = createP('LOADING');
   loading_text.position(canvas_w-100, 50);
-  let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
-  runs = loadJSON(run_url, runLoaded);
+  // let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
+  // runs = loadJSON(run_url, runLoaded);
+  let predictors_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true'
+  predictor_events = loadJSON(predictors_url, eventsLoaded)
+  sel_run.hide();
 }
 
 
 function eventsLoaded(){ //called when predictor events are loaded
-  console.log(predictor_events);
+  //console.log(predictor_events);
+
+  let events_count = Object.keys(predictor_events).length;
+  predictor_table = new p5.Table();
+
+
+  predictor_table.addColumn("onset");
+  predictor_table.addColumn("duration");
+  predictor_table.addColumn("value");
+  for (let e = 0; e < events_count; e++) {
+    let newRow = predictor_table.addRow(); // Create new row object 
+    // Add data to it using setString() 
+    newRow.setString("onset",predictor_events[e].onset);
+    newRow.setString("duration",predictor_events[e].duration);
+    newRow.setString("value",predictor_events[e].value);
+  }
+  console.log(predictor_table);
   loading_text.remove();
 }
 
@@ -436,7 +455,7 @@ function drawCurrentTime() {
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
-  // add seconds elapse
+  // add seconds elapsed
   textSize(10);
   text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
 }
