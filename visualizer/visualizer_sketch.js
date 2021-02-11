@@ -69,6 +69,8 @@ let sel_predictor;
 let predictor_dict;
 let predictor_id;
 let runs;
+let run_id;
+let predictor_events;
 
 function preload() {
   //my table is comma separated value "csv"
@@ -309,6 +311,7 @@ function taskSelect() { //called when you select a neuroscout task
   loading_text.position(canvas_w-100, 50);
   let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorsLoaded)
+  sel_run.hide();
 }
 
 function predictorsLoaded(){ //called when you load predictors for a selected task
@@ -332,7 +335,6 @@ function predictorSelect(){ //called when a predictor is selected
   predictor_id = predictor_dict.get(sel_predictor.value());
   loading_text = createP('LOADING');
   loading_text.position(canvas_w-100, 50);
-  console.log(predictor_id);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
 }
@@ -343,21 +345,29 @@ function runLoaded() {
   sel_run.position(canvas_w, 175);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
-  let run_count = Object.keys(predictors).length;
+  let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
+  loading_text.remove();
   for (let r_n = 0; r_n < run_count; r_n++) {
-    console.log(runs[r_n].id);
     sel_run.option(runs[r_n].id);
     //run_dict.create(runs[r_n].id, runs[r_n].id);
   }
-  loading_text.remove();
   sel_run.changed(runSelect);
   console.log(runs);
 }
 
+function runSelect(){ //called when a run is selected
+  run_id = sel_run.value();
+  loading_text = createP('LOADING');
+  loading_text.position(canvas_w-100, 50);
+  let predictor_events_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true';
+  predictor_events = loadJSON(predictor_events_url, eventsLoaded);
+}
 
-
-
+function eventsLoaded(){ //called when predictor events are loaded
+  console.log(predictor_events);
+  loading_text.remove();
+}
 
 function drawColumnLines() {
   canvas2.stroke(75);
