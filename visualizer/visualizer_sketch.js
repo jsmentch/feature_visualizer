@@ -86,7 +86,7 @@ function preload() {
   let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
   datasets = loadJSON(datasets_url)
 }
-function setup() {
+function setup() { //initial splash screen setup
   console.log(datasets);
   let dataset_count = Object.keys(datasets).length;
   sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
@@ -141,48 +141,16 @@ function setup() {
   offset_set.position(canvas_w, 600);
 }
 
-function setup2() {
-	// video play button
-  button_play = createButton('play');
-  button_play.position(canvas_w,130);
-  button_play.mousePressed(toggleVid); // attach button listener
+function setup2() { //after splash screen setup
+  sel_ds.hide();
+  sel_ds_instructions.hide();
+  sel_task.hide();
+  sel_predictor.hide();
+  sel_run.hide();
 
-  button = createButton('normal speed');
-  button.position(canvas_w, 150);
-  button.mousePressed(normal_speed);
-
-  button = createButton('2x speed');
-  button.position(canvas_w, 170);
-  button.mousePressed(twice_speed);
-
-  button = createButton('half speed');
-  button.position(canvas_w, 190);
-  button.mousePressed(half_speed);
-
-  button_mute = createButton('mute');
-  button_mute.position(canvas_w,210);
-  button_mute.mousePressed(mute_sound); // attach button listener
-
-  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
-  instructions.position(canvas_w, 12);
-  
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
-  keycommands.position(canvas_w, 250);
-
-  button_edit = createButton('Editing: OFF');
-  button_edit.position(canvas_w,290);
-  button_edit.mousePressed(toggleEdit); // attach button listener
-
-  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
-  edit_instructions.position(canvas_w, 340);
-
-  input_export_name = createInput('edited_feature.tsv');
-  input_export_name.position(canvas_w, 390);
-
-  button_export_feature = createButton('export current feature');
-  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
-  button_export_feature.mousePressed(exportFeature);
-
+  predictorlistLoad();
+  addButtons()
+	
   sel = createSelect();
   sel.position(canvas_w, 110);
   for (let i = 0; i < feat_names.length; i++) {
@@ -190,6 +158,7 @@ function setup2() {
   }
   sel.selected(f_id);
   sel.changed(featSelect);
+
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
@@ -230,6 +199,48 @@ function draw() {
   }
 }
 
+function addButtons() {
+  // video play button
+  button_play = createButton('play');
+  button_play.position(canvas_w,130);
+  button_play.mousePressed(toggleVid); // attach button listener
+
+  button = createButton('normal speed');
+  button.position(canvas_w, 150);
+  button.mousePressed(normal_speed);
+
+  button = createButton('2x speed');
+  button.position(canvas_w, 170);
+  button.mousePressed(twice_speed);
+
+  button = createButton('half speed');
+  button.position(canvas_w, 190);
+  button.mousePressed(half_speed);
+
+  button_mute = createButton('mute');
+  button_mute.position(canvas_w,210);
+  button_mute.mousePressed(mute_sound); // attach button listener
+
+  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
+  instructions.position(canvas_w, 12);
+  
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
+  keycommands.position(canvas_w, 250);
+
+  button_edit = createButton('Editing: OFF');
+  button_edit.position(canvas_w,290);
+  button_edit.mousePressed(toggleEdit); // attach button listener
+
+  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
+  edit_instructions.position(canvas_w, 340);
+
+  input_export_name = createInput('edited_feature.tsv');
+  input_export_name.position(canvas_w, 390);
+
+  button_export_feature = createButton('export current feature');
+  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
+  button_export_feature.mousePressed(exportFeature);
+}
 //Keyboard Hotkeys
 function keyPressed() {
   if (keyCode === 32) { //space
@@ -285,64 +296,45 @@ function featSelect() { //called when you select a feature to visualize
   }
 }
 
+
+
+//API STUFF
+
+
+
 function dsSelect() { //called when you select a neuroscout dataset
-  if (sel_ds.value() !== ''){
-    ds_ind = ds_dict.get(sel_ds.value()); //ds index
-    let task_count = datasets[ds_ind].tasks.length;
-    sel_task.remove();
-    sel_task = createSelect();
-    sel_task.position(canvas_w, 125);
-    sel_task.option('Select a task');
-    sel_task.selected('Select a task');
-    task_dict = new p5.TypedDict();
-    for (let task_n = 0; task_n < task_count; task_n++) {
-      sel_task.option(datasets[ds_ind].tasks[task_n].name);
-      task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id);
-      sel_task.changed(taskSelect);
-    }
-    sel_predictor.hide();
-    sel_run.hide();
+  ds_ind = ds_dict.get(sel_ds.value()); //ds index
+  let task_count = datasets[ds_ind].tasks.length; // # of tasks in the dataset
+  sel_task.remove(); //destroy old task select object, make a new one
+  sel_task = createSelect();
+  sel_task.position(canvas_w, 125);
+  sel_task.option('Select a task');
+  sel_task.selected('Select a task');
+  task_dict = new p5.TypedDict();
+  for (let task_n = 0; task_n < task_count; task_n++) { //loop through tasks, add select options
+    sel_task.option(datasets[ds_ind].tasks[task_n].name);
+    task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id); // add task name, id to dict
   }
+  sel_task.changed(taskSelect);
+  sel_predictor.hide();
+  sel_run.hide();
 }
 
 function taskSelect() { //called when you select a neuroscout task
   task_id = task_dict.get(sel_task.value());
   loading_text = createP('LOADING');
   loading_text.position(canvas_w-100, 50);
-  let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
-  predictors = loadJSON(predictors_url, predictorsLoaded)
-  sel_run.hide();
-}
-
-function predictorsLoaded(){ //called when you load predictors for a selected task
-  sel_predictor.remove();
-  sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 150);
-  sel_predictor.option('Select a predictor');
-  sel_predictor.selected('Select a predictor');
-  let predictor_count = Object.keys(predictors).length;
-  predictor_dict = new p5.TypedDict();
-  for (let p_n = 0; p_n < predictor_count; p_n++) {
-    sel_predictor.option(predictors[p_n].name);
-    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
-  }
-  loading_text.remove();
-  sel_predictor.changed(predictorSelect);
-  console.log(predictors);
-}
-
-function predictorSelect(){ //called when a predictor is selected
-  predictor_id = predictor_dict.get(sel_predictor.value());
-  loading_text = createP('LOADING');
-  loading_text.position(canvas_w-100, 50);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
+  // let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
+  // predictors = loadJSON(predictors_url, predictorsLoaded)
+  // sel_run.hide();
 }
 
-function runLoaded() {
+function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
   sel_run = createSelect();
-  sel_run.position(canvas_w, 175);
+  sel_run.position(canvas_w, 150);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
   let run_count = Object.keys(runs).length; 
@@ -358,16 +350,62 @@ function runLoaded() {
 
 function runSelect(){ //called when a run is selected
   run_id = sel_run.value();
+}
+
+function predictorlistLoad(){
+  let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
+  predictors = loadJSON(predictors_url, predictorlistLoaded)
+  sel_run.hide();
+}
+
+function predictorlistLoaded(){ //called when you load predictors for a selected task
+  sel_predictor.remove();
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w, 150);
+  sel_predictor.option('Select a predictor');
+  sel_predictor.selected('Select a predictor');
+  let predictor_count = Object.keys(predictors).length;
+  predictor_dict = new p5.TypedDict();
+  for (let p_n = 0; p_n < predictor_count; p_n++) {
+    sel_predictor.option(predictors[p_n].name);
+    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
+  }
+  sel_predictor.changed(predictorSelect);
+}
+
+function predictorSelect(){ //called when a predictor is selected
+  predictor_id = predictor_dict.get(sel_predictor.value());
   loading_text = createP('LOADING');
   loading_text.position(canvas_w-100, 50);
-  let predictor_events_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true';
-  predictor_events = loadJSON(predictor_events_url, eventsLoaded);
+  let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
+  runs = loadJSON(run_url, runLoaded);
 }
+
 
 function eventsLoaded(){ //called when predictor events are loaded
   console.log(predictor_events);
   loading_text.remove();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function drawColumnLines() {
   canvas2.stroke(75);
