@@ -1,4 +1,4 @@
-let offset = 25.5; // merlin movie started at 25.5 seconds..
+let offset = 0 //25.5; // merlin movie started at 25.5 seconds..
 
 let vid = null; //video object
 let vid_loaded = false;
@@ -58,100 +58,20 @@ let feat_names = ['',
 'new_feature',
 'a_sub-19_task-MerlinMovie_events',
 'a_sub-22_task-MerlinMovie_events']
-// 'id_1_mqc',
-// 'id_2_mqc',
-// 'id_3_mqc',
-// 'id_4_mqc',
-// 'id_5_mqc',
-// 'id_6_mqc',
-// 'id_7_mqc',
-// 'id_8_mqc',
-// 'id_9_mqc',
-// 'id_10_mqc',
-// 'id_11_mqc',
-// 'id_12_mqc',
-// 'id_13_mqc',
-// 'id_14_mqc',
-// 'id_15_mqc',
-// 'id_16_mqc',
-// 'id_17_mqc',
-// 'id_18_mqc',
-// 'id_19_mqc',
-// 'id_20_mqc',
-// 'logical_and_allv2',
-// 'as-Alarm',
-// 'as-Animal',
-// 'as-Domestic animals pets',
-// 'as-Engine',
-// 'as-Explosion',
-// 'as-Fire',
-// 'as-Glass',
-// 'as-Hands',
-// 'as-Heart sounds heartbeat',
-// 'as-Liquid',
-// 'as-Livestock farm animals working animals',
-// 'as-Mechanisms',
-// 'as-Music',
-// 'as-Musical instrument',
-// 'as-Noise',
-// 'as-Silence',
-// 'as-Thunderstorm',
-// 'as-Tools',
-// 'as-Vehicle',
-// 'as-Water',
-// 'as-Whistling',
-// 'as-Wild animals',
-// 'as-Wind',
-// 'as-Wood',
-// 'face_id_1',
-// 'face_id_2',
-// 'face_id_3',
-// 'face_id_4',
-// 'face_id_5',
-// 'face_id_6',
-// 'face_id_7',
-// 'face_id_8',
-// 'face_id_9',
-// 'face_id_10',
-// 'face_id_11',
-// 'face_id_12',
-// 'face_id_13',
-// 'face_id_14',
-// 'face_id_15',
-// 'face_id_16',
-// 'face_id_17',
-// 'face_id_18',
-// 'face_id_19',
-// 'face_id_20',
-// 'face_detectionConfidence',
-// 'face',
-// 'any_faces',
-// 'speech',
-// 'speaker_id_gaius',
-// 'speaker_id_gregory',
-// 'speaker_id_guinevere',
-// 'speaker_id_helen',
-// 'speaker_id_helen_mary',
-// 'speaker_id_kilgharrah',
-// 'speaker_id_knight',
-// 'speaker_id_mary',
-// 'speaker_id_merlin',
-// 'speaker_id_morgana',
-// 'speaker_id_morris',
-// 'speaker_id_uther',
-// 'speaker_id_arthur',
-// 'face_id_qc_arthur',
-// 'face_id_qc_gregory',
-// 'face_id_qc_guinevere',
-// 'face_id_qc_helen',
-// 'face_id_qc_mary',
-// 'face_id_qc_merlin',
-// 'face_id_qc_morgana',
-// 'face_id_qc_uther',
-// 'face_id_qc_arthur',
-// 'logical_and_all',
-// 'logical_and_merlin_test'];
+
 let datasets;
+let ds_ind;
+let sel_ds;
+let sel_task;
+let ds_dict;
+let task_id;
+let sel_predictor;
+let predictor_dict;
+let predictor_id;
+let runs;
+let run_id;
+let predictor_events;
+
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
@@ -166,97 +86,80 @@ function preload() {
   let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
   datasets = loadJSON(datasets_url)
 }
-
-function setup() {
+function setup() { //initial splash screen setup
+  //console.log(datasets);
   let dataset_count = Object.keys(datasets).length;
-  // for (ds_n = 0; ds_n < dataset_count; ds_n++) {
-  //   console.log(datasets[ds_n].name);
-  // }
-  sel_ns_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
-  sel_ns_instructions.position(canvas_w, 50);
-  sel_ns = createSelect();
-  sel_ns.position(canvas_w, 100);
+  sel_ds_instructions = createP('FIRST: Select a neuroscout dataset.');
+  sel_ds_instructions.position(canvas_w, 50);
+  sel_ds = createSelect();
+  sel_ds.position(canvas_w, 100);
+  sel_ds.option('Select a Dataset');
+  sel_ds.selected('Select a Dataset');
+  ds_dict = new p5.TypedDict();
+
   for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
-    sel_ns.option(datasets[ds_n].name);
+    sel_ds.option(datasets[ds_n].name);
+    ds_dict.create(datasets[ds_n].name, ds_n);
   }
-  // for (let i = 0; i < datasets.length; i++) {
-  //   console.log(datasets[i].name);
-  // }// for(ds of datasets){
-  // for (var element of datasets){
-  //   console.log(element);
-  // }
+  sel_ds.changed(dsSelect);
+
+  sel_task = createSelect();
+  sel_task.position(canvas_w, 125);
+  sel_task.option('Select a task');
+  sel_task.selected('Select a task');
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w, 110);
+  sel_predictor.option('Select a predictor from Neuroscout');
+  sel_predictor.selected('Select a predictor from Neuroscout');
+  sel_run = createSelect();
+  sel_run.position(canvas_w, 175);
+  sel_run.option('Select a run');
+  sel_run.selected('Select a run');
+  sel_task.hide();
+  sel_predictor.hide();
+  sel_run.hide();
 
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
   // video load button
-  button_load_instructions = createP('Select a local video file of the stimulus');
-  button_load_instructions.position(canvas_w, 150);
+  button_load_instructions = createP('NEXT: Select a local video file of the stimulus');
+  button_load_instructions.position(canvas_w, 350);
   button_load = createFileInput(handleVideo);
-  button_load.position(canvas_w, 200);
+  button_load.position(canvas_w, 400);
 
-  button_dummy_instructions = createP('or, use a blank placeholder');
-  button_dummy_instructions.position(canvas_w, 250);
+  button_dummy_instructions = createP('OR: use a blank placeholder');
+  button_dummy_instructions.position(canvas_w, 450);
   button_dummy = createButton('handleDummy');
-  button_dummy.position(canvas_w, 300);
+  button_dummy.position(canvas_w, 500);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
-  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start');
-  offset_set_instructions.position(canvas_w, 350);
+  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start. this is bugged');
+  offset_set_instructions.position(canvas_w, 550);
   offset_set = createInput('');
-  offset_set.position(canvas_w, 400);
+  offset_set.position(canvas_w, 600);
 }
 
-function setup2() {
-	  // video play button
-  button_play = createButton('play');
-  button_play.position(canvas_w,130);
-  button_play.mousePressed(toggleVid); // attach button listener
+function setup2() { //after splash screen setup
+  sel_ds.hide();
+  sel_ds_instructions.hide();
+  sel_task.hide();
+  sel_predictor.hide();
+  sel_run.hide();
 
-  button = createButton('normal speed');
-  button.position(canvas_w, 150);
-  button.mousePressed(normal_speed);
+  predictorlistLoad();
+  addButtons()
+	
+  //old method of loading feature from folder - don't delete yet
+  // sel = createSelect();
+  // sel.position(canvas_w, );
+  // for (let i = 0; i < feat_names.length; i++) {
+  //   sel.option(feat_names[i]);
+  // }
+  // sel.selected(f_id);
+  // sel.changed(featSelect);
 
-  button = createButton('2x speed');
-  button.position(canvas_w, 170);
-  button.mousePressed(twice_speed);
-
-  button = createButton('half speed');
-  button.position(canvas_w, 190);
-  button.mousePressed(half_speed);
-
-  button_mute = createButton('mute');
-  button_mute.position(canvas_w,210);
-  button_mute.mousePressed(mute_sound); // attach button listener
-
-  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
-  instructions.position(canvas_w, 12);
-  
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
-  keycommands.position(canvas_w, 250);
-
-  button_edit = createButton('Editing: OFF');
-  button_edit.position(canvas_w,290);
-  button_edit.mousePressed(toggleEdit); // attach button listener
-
-  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
-  edit_instructions.position(canvas_w, 340);
-
-  input_export_name = createInput('edited_feature.tsv');
-  input_export_name.position(canvas_w, 390);
-
-  button_export_feature = createButton('export current feature');
-  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
-  button_export_feature.mousePressed(exportFeature);
-
-  sel = createSelect();
-  sel.position(canvas_w, 110);
-  for (let i = 0; i < feat_names.length; i++) {
-    sel.option(feat_names[i]);
-  }
-  sel.selected(f_id);
-  sel.changed(featSelect);
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
@@ -297,6 +200,48 @@ function draw() {
   }
 }
 
+function addButtons() {
+  // video play button
+  button_play = createButton('play');
+  button_play.position(canvas_w,130);
+  button_play.mousePressed(toggleVid); // attach button listener
+
+  button = createButton('normal speed');
+  button.position(canvas_w, 150);
+  button.mousePressed(normal_speed);
+
+  button = createButton('2x speed');
+  button.position(canvas_w, 170);
+  button.mousePressed(twice_speed);
+
+  button = createButton('half speed');
+  button.position(canvas_w, 190);
+  button.mousePressed(half_speed);
+
+  button_mute = createButton('mute');
+  button_mute.position(canvas_w,210);
+  button_mute.mousePressed(mute_sound); // attach button listener
+
+  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
+  instructions.position(canvas_w, 12);
+  
+  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
+  keycommands.position(canvas_w, 250);
+
+  button_edit = createButton('Editing: OFF');
+  button_edit.position(canvas_w,290);
+  button_edit.mousePressed(toggleEdit); // attach button listener
+
+  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
+  edit_instructions.position(canvas_w, 340);
+
+  input_export_name = createInput('edited_feature.tsv');
+  input_export_name.position(canvas_w, 390);
+
+  button_export_feature = createButton('export current feature');
+  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
+  button_export_feature.mousePressed(exportFeature);
+}
 //Keyboard Hotkeys
 function keyPressed() {
   if (keyCode === 32) { //space
@@ -352,6 +297,135 @@ function featSelect() { //called when you select a feature to visualize
   }
 }
 
+
+
+//API STUFF
+
+
+
+function dsSelect() { //called when you select a neuroscout dataset
+  ds_ind = ds_dict.get(sel_ds.value()); //ds index
+  let task_count = datasets[ds_ind].tasks.length; // # of tasks in the dataset
+  sel_task.remove(); //destroy old task select object, make a new one
+  sel_task = createSelect();
+  sel_task.position(canvas_w, 125);
+  sel_task.option('Select a task');
+  sel_task.selected('Select a task');
+  task_dict = new p5.TypedDict();
+  for (let task_n = 0; task_n < task_count; task_n++) { //loop through tasks, add select options
+    sel_task.option(datasets[ds_ind].tasks[task_n].name);
+    task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id); // add task name, id to dict
+  }
+  sel_task.changed(taskSelect);
+  sel_predictor.hide();
+  sel_run.hide();
+}
+
+function taskSelect() { //called when you select a neuroscout task
+  task_id = task_dict.get(sel_task.value());
+  loading_text = createP('LOADING');
+  loading_text.position(canvas_w-100, 50);
+  let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
+  runs = loadJSON(run_url, runLoaded);
+  // let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
+  // predictors = loadJSON(predictors_url, predictorsLoaded)
+  // sel_run.hide();
+}
+
+function runLoaded() { //after selecting a task, runs are loaded
+  sel_run.remove();
+  sel_run = createSelect();
+  sel_run.position(canvas_w, 150);
+  sel_run.option('Select a run');
+  sel_run.selected('Select a run');
+  let run_count = Object.keys(runs).length; 
+  run_dict = new p5.TypedDict();
+  loading_text.remove();
+  for (let r_n = 0; r_n < run_count; r_n++) {
+    sel_run.option(runs[r_n].id);
+    //run_dict.create(runs[r_n].id, runs[r_n].id);
+  }
+  sel_run.changed(runSelect);
+  //console.log(runs);
+}
+
+function runSelect(){ //called when a run is selected
+  run_id = sel_run.value();
+}
+
+function predictorlistLoad(){
+  let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
+  predictors = loadJSON(predictors_url, predictorlistLoaded)
+  sel_run.hide();
+}
+
+function predictorlistLoaded(){ //called when you load predictors for a selected task
+  sel_predictor.remove();
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w, 110);
+  sel_predictor.option('Select a predictor from Neuroscout');
+  sel_predictor.selected('Select a predictor from Neuroscout');
+  let predictor_count = Object.keys(predictors).length;
+  predictor_dict = new p5.TypedDict();
+  for (let p_n = 0; p_n < predictor_count; p_n++) {
+    sel_predictor.option(predictors[p_n].name);
+    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
+  }
+  sel_predictor.changed(predictorSelect);
+}
+
+function predictorSelect(){ //called when a predictor is selected
+  predictor_id = predictor_dict.get(sel_predictor.value());
+  loading_text = createP('LOADING');
+  loading_text.position(canvas_w-100, 50);
+  // let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
+  // runs = loadJSON(run_url, runLoaded);
+  let predictors_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true'
+  predictor_events = loadJSON(predictors_url, eventsLoaded)
+  sel_run.hide();
+}
+
+
+function eventsLoaded(){ //called when predictor events are loaded
+  //console.log(predictor_events);
+
+  let events_count = Object.keys(predictor_events).length;
+  predictor_table = new p5.Table();
+
+
+  predictor_table.addColumn("onset");
+  predictor_table.addColumn("duration");
+  predictor_table.addColumn("value");
+  for (let e = 0; e < events_count; e++) {
+    let newRow = predictor_table.addRow(); // Create new row object 
+    // Add data to it using setString() 
+    newRow.setString("onset",predictor_events[e].onset);
+    newRow.setString("duration",predictor_events[e].duration);
+    newRow.setString("value",predictor_events[e].value);
+  }
+  f_id = sel_predictor.value();
+  feature_n = feature_n + 1; //total number of features
+  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+  features[feature_n-1].loadInfoFromNS();
+  loading_text.remove();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function drawColumnLines() {
   canvas2.stroke(75);
   canvas2.strokeWeight(3);
@@ -381,7 +455,7 @@ function drawCurrentTime() {
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
   text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
-  // add seconds elapse
+  // add seconds elapsed
   textSize(10);
   text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
 }
@@ -563,6 +637,22 @@ class Feature {
     this.f_tab = table;
   }
 
+  loadInfoFromNS(){
+    this.createNewFeature(); //make a new blank table at given sr and duration
+    let load_tab = predictor_table;
+    for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
+      let load_tab_onset = load_tab.get(r,0)-offset;
+      let load_tab_duration = load_tab.get(r,1);
+      let load_tab_value = load_tab.get(r,2);
+      for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
+        if (m < duration_s) {
+          this.f_tab.setString(round(m*10),2,load_tab_value);
+        }
+      }
+    }
+    this.setupAfterTable();
+  }
+
   loadInfoFromTable = (loadedtable) => {
     let load_tab = loadedtable;
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
@@ -575,9 +665,13 @@ class Feature {
         }
       }
     }
+    this.setupAfterTable();
+  }
+  setupAfterTable = () => {
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
+    //draw coarse timeline
     canvas2.fill(this.c);
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
@@ -612,7 +706,7 @@ class Feature {
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
-    feat_selected = true; //the feature is slected and loaded, so draw it now
+    feat_selected = true; //the feature is selected and loaded, so draw it now
   }
   //edit the feature value in the table
   editValue = (new_feat_time,new_feat_val) => {
@@ -625,6 +719,9 @@ class Feature {
   }
 
   drawFeatureSliding = () => {
+    let feature_vals = this.f_tab.getColumn(2);
+    let min_feat = min(feature_vals);
+    let max_feat = max(feature_vals);
     stroke(100);
     if (isNaN(completion)) {
       completion = 0;
@@ -643,9 +740,9 @@ class Feature {
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
-        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), 0, 1, 0, 100);
+        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
         let x = map(completion+i+1, 0, 100, 0, column1_w);
-        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), 0, 1, 0, 100);
+        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
         line(px, py, x, y);
       }
     } 
@@ -653,6 +750,9 @@ class Feature {
 
   //make an overlaid bar of the instantaneous feature level
   drawInstantaneous = () => {
+    let feature_vals = this.f_tab.getColumn(2);
+    let min_feat = min(feature_vals);
+    let max_feat = max(feature_vals);
     noStroke();
     fill(0,100,100);
     strokeWeight(1);
@@ -664,7 +764,7 @@ class Feature {
     //turn this into a bar plot of sorts
     if (current_rowindex<this.f_tab.getRowCount()){
       let current_val = this.f_tab.getString(current_rowindex, 2);
-      current_val = map(current_val,0,1,0,100)
+      current_val = map(current_val,min_feat,max_feat,0,100)
       stroke(this.c);
       fill(this.c);
       rect(this.feature_n*30, vid_h-30, 20, -current_val);
