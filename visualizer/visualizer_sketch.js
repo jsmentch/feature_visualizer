@@ -58,104 +58,13 @@ let feat_names = ['',
 'new_feature',
 'a_sub-19_task-MerlinMovie_events',
 'a_sub-22_task-MerlinMovie_events']
-// 'id_1_mqc',
-// 'id_2_mqc',
-// 'id_3_mqc',
-// 'id_4_mqc',
-// 'id_5_mqc',
-// 'id_6_mqc',
-// 'id_7_mqc',
-// 'id_8_mqc',
-// 'id_9_mqc',
-// 'id_10_mqc',
-// 'id_11_mqc',
-// 'id_12_mqc',
-// 'id_13_mqc',
-// 'id_14_mqc',
-// 'id_15_mqc',
-// 'id_16_mqc',
-// 'id_17_mqc',
-// 'id_18_mqc',
-// 'id_19_mqc',
-// 'id_20_mqc',
-// 'logical_and_allv2',
-// 'as-Alarm',
-// 'as-Animal',
-// 'as-Domestic animals pets',
-// 'as-Engine',
-// 'as-Explosion',
-// 'as-Fire',
-// 'as-Glass',
-// 'as-Hands',
-// 'as-Heart sounds heartbeat',
-// 'as-Liquid',
-// 'as-Livestock farm animals working animals',
-// 'as-Mechanisms',
-// 'as-Music',
-// 'as-Musical instrument',
-// 'as-Noise',
-// 'as-Silence',
-// 'as-Thunderstorm',
-// 'as-Tools',
-// 'as-Vehicle',
-// 'as-Water',
-// 'as-Whistling',
-// 'as-Wild animals',
-// 'as-Wind',
-// 'as-Wood',
-// 'face_id_1',
-// 'face_id_2',
-// 'face_id_3',
-// 'face_id_4',
-// 'face_id_5',
-// 'face_id_6',
-// 'face_id_7',
-// 'face_id_8',
-// 'face_id_9',
-// 'face_id_10',
-// 'face_id_11',
-// 'face_id_12',
-// 'face_id_13',
-// 'face_id_14',
-// 'face_id_15',
-// 'face_id_16',
-// 'face_id_17',
-// 'face_id_18',
-// 'face_id_19',
-// 'face_id_20',
-// 'face_detectionConfidence',
-// 'face',
-// 'any_faces',
-// 'speech',
-// 'speaker_id_gaius',
-// 'speaker_id_gregory',
-// 'speaker_id_guinevere',
-// 'speaker_id_helen',
-// 'speaker_id_helen_mary',
-// 'speaker_id_kilgharrah',
-// 'speaker_id_knight',
-// 'speaker_id_mary',
-// 'speaker_id_merlin',
-// 'speaker_id_morgana',
-// 'speaker_id_morris',
-// 'speaker_id_uther',
-// 'speaker_id_arthur',
-// 'face_id_qc_arthur',
-// 'face_id_qc_gregory',
-// 'face_id_qc_guinevere',
-// 'face_id_qc_helen',
-// 'face_id_qc_mary',
-// 'face_id_qc_merlin',
-// 'face_id_qc_morgana',
-// 'face_id_qc_uther',
-// 'face_id_qc_arthur',
-// 'logical_and_all',
-// 'logical_and_merlin_test'];
+
 let datasets;
 let sel_ds;
 let sel_task;
 let ds_dict;
 let task_id;
+let sel_predictor;
 
 function preload() {
   //my table is comma separated value "csv"
@@ -189,6 +98,9 @@ function setup() {
   sel_task = createSelect();
   sel_task.position(canvas_w, 125);
 
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w, 140);
+
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
@@ -212,7 +124,7 @@ function setup() {
 }
 
 function setup2() {
-	  // video play button
+	// video play button
   button_play = createButton('play');
   button_play.position(canvas_w,130);
   button_play.mousePressed(toggleVid); // attach button listener
@@ -381,7 +293,22 @@ function taskSelect() { //called when you select a neuroscout task
 
 function predictorsLoaded(){ //called when you load predictors for a selected task
   console.log(predictors);
+  sel_predictor.remove();
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w, 140);
+  let predictor_count = Object.keys(predictors).length;
+  predictor_dict = new p5.TypedDict();
+  for (let p_n = 0; p_n < predictor_count; p_n++) {
+    sel_predictor.option(predictors[p_n].name);
+    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
+  }
+  sel_task.changed(predictorSelect);
 }
+
+function predictorSelect(){
+
+}
+
 
 function drawColumnLines() {
   canvas2.stroke(75);
