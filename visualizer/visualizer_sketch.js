@@ -155,6 +155,8 @@ let datasets;
 let sel_ds;
 let sel_task;
 let ds_dict;
+let task_id;
+
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
@@ -172,9 +174,6 @@ function preload() {
 
 function setup() {
   let dataset_count = Object.keys(datasets).length;
-  console.log(datasets);// for (ds_n = 0; ds_n < dataset_count; ds_n++) {
-  //   console.log(datasets[ds_n].name);
-  // }
   sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
   sel_ds_instructions.position(canvas_w, 50);
   sel_ds = createSelect();
@@ -185,21 +184,10 @@ function setup() {
     sel_ds.option(datasets[ds_n].name);
     ds_dict.create(datasets[ds_n].name, ds_n);
   }
-  console.log(ds_dict);
   sel_ds.changed(dsSelect);
 
   sel_task = createSelect();
   sel_task.position(canvas_w, 125);
-  // sel_task_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
-  // sel_task_instructions.position(canvas_w, 50);
-  //sel_task.changed(taskSelect);
-
-  // for (let i = 0; i < datasets.length; i++) {
-  //   console.log(datasets[i].name);
-  // }// for(ds of datasets){
-  // for (var element of datasets){
-  //   console.log(element);
-  // }
 
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -380,9 +368,19 @@ function dsSelect() { //called when you select a neuroscout dataset
     for (let task_n = 0; task_n < task_count; task_n++) {
       sel_task.option(datasets[ds_ind].tasks[task_n].name);
       task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id);
+      sel_task.changed(taskSelect);
     }
   }
+}
 
+function taskSelect() { //called when you select a neuroscout task
+  task_id = task_dict.get(sel_task.value());
+  let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
+  predictors = loadJSON(predictors_url, predictorsLoaded)
+}
+
+function predictorsLoaded(){ //called when you load predictors for a selected task
+  console.log(predictors);
 }
 
 function drawColumnLines() {
