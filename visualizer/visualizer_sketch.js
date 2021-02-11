@@ -670,6 +670,7 @@ class Feature {
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
+    //draw coarse timeline
     canvas2.fill(this.c);
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
@@ -704,7 +705,7 @@ class Feature {
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
-    feat_selected = true; //the feature is slected and loaded, so draw it now
+    feat_selected = true; //the feature is selected and loaded, so draw it now
   }
   //edit the feature value in the table
   editValue = (new_feat_time,new_feat_val) => {
@@ -717,6 +718,9 @@ class Feature {
   }
 
   drawFeatureSliding = () => {
+    let feature_vals = this.f_tab.getColumn(2);
+    let min_feat = min(feature_vals);
+    let max_feat = max(feature_vals);
     stroke(100);
     if (isNaN(completion)) {
       completion = 0;
@@ -735,9 +739,9 @@ class Feature {
     if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         let px = map(completion+i, 0, 100, 0, column1_w);
-        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), 0, 1, 0, 100);
+        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
         let x = map(completion+i+1, 0, 100, 0, column1_w);
-        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), 0, 1, 0, 100);
+        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
         line(px, py, x, y);
       }
     } 
@@ -745,6 +749,9 @@ class Feature {
 
   //make an overlaid bar of the instantaneous feature level
   drawInstantaneous = () => {
+    let feature_vals = this.f_tab.getColumn(2);
+    let min_feat = min(feature_vals);
+    let max_feat = max(feature_vals);
     noStroke();
     fill(0,100,100);
     strokeWeight(1);
@@ -756,7 +763,7 @@ class Feature {
     //turn this into a bar plot of sorts
     if (current_rowindex<this.f_tab.getRowCount()){
       let current_val = this.f_tab.getString(current_rowindex, 2);
-      current_val = map(current_val,0,1,0,100)
+      current_val = map(current_val,min_feat,max_feat,0,100)
       stroke(this.c);
       fill(this.c);
       rect(this.feature_n*30, vid_h-30, 20, -current_val);
