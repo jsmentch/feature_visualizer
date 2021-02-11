@@ -89,7 +89,7 @@ function preload() {
 function setup() { //initial splash screen setup
   //console.log(datasets);
   let dataset_count = Object.keys(datasets).length;
-  sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
+  sel_ds_instructions = createP('FIRST: Select a neuroscout dataset.');
   sel_ds_instructions.position(canvas_w, 50);
   sel_ds = createSelect();
   sel_ds.position(canvas_w, 100);
@@ -108,9 +108,9 @@ function setup() { //initial splash screen setup
   sel_task.option('Select a task');
   sel_task.selected('Select a task');
   sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 150);
-  sel_predictor.option('Select a predictor');
-  sel_predictor.selected('Select a predictor');
+  sel_predictor.position(canvas_w, 110);
+  sel_predictor.option('Select a predictor from Neuroscout');
+  sel_predictor.selected('Select a predictor from Neuroscout');
   sel_run = createSelect();
   sel_run.position(canvas_w, 175);
   sel_run.option('Select a run');
@@ -124,18 +124,18 @@ function setup() { //initial splash screen setup
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
   canvas3.clear();
   // video load button
-  button_load_instructions = createP('Select a local video file of the stimulus');
+  button_load_instructions = createP('NEXT: Select a local video file of the stimulus');
   button_load_instructions.position(canvas_w, 350);
   button_load = createFileInput(handleVideo);
   button_load.position(canvas_w, 400);
 
-  button_dummy_instructions = createP('or, use a blank placeholder');
+  button_dummy_instructions = createP('OR: use a blank placeholder');
   button_dummy_instructions.position(canvas_w, 450);
   button_dummy = createButton('handleDummy');
   button_dummy.position(canvas_w, 500);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
-  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start');
+  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start. this is bugged');
   offset_set_instructions.position(canvas_w, 550);
   offset_set = createInput('');
   offset_set.position(canvas_w, 600);
@@ -151,13 +151,14 @@ function setup2() { //after splash screen setup
   predictorlistLoad();
   addButtons()
 	
-  sel = createSelect();
-  sel.position(canvas_w, 110);
-  for (let i = 0; i < feat_names.length; i++) {
-    sel.option(feat_names[i]);
-  }
-  sel.selected(f_id);
-  sel.changed(featSelect);
+  //old method of loading feature from folder - don't delete yet
+  // sel = createSelect();
+  // sel.position(canvas_w, );
+  // for (let i = 0; i < feat_names.length; i++) {
+  //   sel.option(feat_names[i]);
+  // }
+  // sel.selected(f_id);
+  // sel.changed(featSelect);
 
   drawColumnLines();
   drawPanelLabels();
@@ -361,9 +362,9 @@ function predictorlistLoad(){
 function predictorlistLoaded(){ //called when you load predictors for a selected task
   sel_predictor.remove();
   sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 150);
-  sel_predictor.option('Select a predictor');
-  sel_predictor.selected('Select a predictor');
+  sel_predictor.position(canvas_w, 110);
+  sel_predictor.option('Select a predictor from Neuroscout');
+  sel_predictor.selected('Select a predictor from Neuroscout');
   let predictor_count = Object.keys(predictors).length;
   predictor_dict = new p5.TypedDict();
   for (let p_n = 0; p_n < predictor_count; p_n++) {
