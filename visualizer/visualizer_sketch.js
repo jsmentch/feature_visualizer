@@ -151,7 +151,7 @@ let feat_names = ['',
 // 'face_id_qc_arthur',
 // 'logical_and_all',
 // 'logical_and_merlin_test'];
-
+let datasets;
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
@@ -163,10 +163,29 @@ function preload() {
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
   //test video
   //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
-
+  let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
+  datasets = loadJSON(datasets_url)
 }
 
 function setup() {
+  let dataset_count = Object.keys(datasets).length;
+  // for (ds_n = 0; ds_n < dataset_count; ds_n++) {
+  //   console.log(datasets[ds_n].name);
+  // }
+  sel_ns_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
+  sel_ns_instructions.position(canvas_w, 50);
+  sel_ns = createSelect();
+  sel_ns.position(canvas_w, 100);
+  for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
+    sel_ns.option(datasets[ds_n].name);
+  }
+  // for (let i = 0; i < datasets.length; i++) {
+  //   console.log(datasets[i].name);
+  // }// for(ds of datasets){
+  // for (var element of datasets){
+  //   console.log(element);
+  // }
+
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
