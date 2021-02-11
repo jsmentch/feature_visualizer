@@ -87,6 +87,8 @@ function setup() {
   sel_ds_instructions.position(canvas_w, 50);
   sel_ds = createSelect();
   sel_ds.position(canvas_w, 100);
+  sel_ds.option('Select a Dataset');
+  sel_ds.selected('Select a Dataset');
   ds_dict = new p5.TypedDict();
 
   for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
@@ -97,9 +99,14 @@ function setup() {
 
   sel_task = createSelect();
   sel_task.position(canvas_w, 125);
-
+  sel_task.option('Select a task');
+  sel_task.selected('Select a task');
   sel_predictor = createSelect();
   sel_predictor.position(canvas_w, 140);
+  sel_predictor.option('Select a predictor');
+  sel_predictor.selected('Select a predictor');
+  sel_task.hide();
+  sel_predictor.hide();
 
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -271,44 +278,48 @@ function dsSelect() { //called when you select a neuroscout dataset
   if (sel_ds.value() !== ''){
     let ds_ind = ds_dict.get(sel_ds.value()); //ds index
     let task_count = datasets[ds_ind].tasks.length;
-    
     sel_task.remove();
     sel_task = createSelect();
     sel_task.position(canvas_w, 125);
-
+    sel_task.option('Select a task');
+    sel_task.selected('Select a task');
     task_dict = new p5.TypedDict();
     for (let task_n = 0; task_n < task_count; task_n++) {
       sel_task.option(datasets[ds_ind].tasks[task_n].name);
       task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id);
       sel_task.changed(taskSelect);
     }
+    sel_predictor.hide();
   }
 }
 
 function taskSelect() { //called when you select a neuroscout task
   task_id = task_dict.get(sel_task.value());
+  loading_text = createP('LOADING');
+  loading_text.position(canvas_w-100, 50);
   let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorsLoaded)
 }
 
 function predictorsLoaded(){ //called when you load predictors for a selected task
-  console.log(predictors);
   sel_predictor.remove();
   sel_predictor = createSelect();
   sel_predictor.position(canvas_w, 140);
+  sel_predictor.option('Select a predictor');
+  sel_predictor.selected('Select a predictor');
   let predictor_count = Object.keys(predictors).length;
   predictor_dict = new p5.TypedDict();
   for (let p_n = 0; p_n < predictor_count; p_n++) {
     sel_predictor.option(predictors[p_n].name);
     predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
   }
+  loading_text.remove();
   sel_task.changed(predictorSelect);
 }
 
 function predictorSelect(){
 
 }
-
 
 function drawColumnLines() {
   canvas2.stroke(75);
