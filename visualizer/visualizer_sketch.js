@@ -1,4 +1,4 @@
-let offset = 25.5; // merlin movie started at 25.5 seconds..
+let offset = 0 //25.5; // merlin movie started at 25.5 seconds..
 
 let vid = null; //video object
 let vid_loaded = false;
@@ -87,7 +87,7 @@ function preload() {
   datasets = loadJSON(datasets_url)
 }
 function setup() { //initial splash screen setup
-  console.log(datasets);
+  //console.log(datasets);
   let dataset_count = Object.keys(datasets).length;
   sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
   sel_ds_instructions.position(canvas_w, 50);
@@ -402,13 +402,12 @@ function eventsLoaded(){ //called when predictor events are loaded
     newRow.setString("duration",predictor_events[e].duration);
     newRow.setString("value",predictor_events[e].value);
   }
-  console.log(predictor_table);
+  f_id = sel_predictor.value();
+  feature_n = feature_n + 1; //total number of features
+  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+  features[feature_n-1].loadInfoFromNS();
   loading_text.remove();
 }
-
-
-
-
 
 
 
@@ -637,6 +636,22 @@ class Feature {
     this.f_tab = table;
   }
 
+  loadInfoFromNS(){
+    this.createNewFeature(); //make a new blank table at given sr and duration
+    let load_tab = predictor_table;
+    for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
+      let load_tab_onset = load_tab.get(r,0)-offset;
+      let load_tab_duration = load_tab.get(r,1);
+      let load_tab_value = load_tab.get(r,2);
+      for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
+        if (m < duration_s) {
+          this.f_tab.setString(round(m*10),2,load_tab_value);
+        }
+      }
+    }
+    this.setupAfterTable();
+  }
+
   loadInfoFromTable = (loadedtable) => {
     let load_tab = loadedtable;
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
@@ -649,6 +664,9 @@ class Feature {
         }
       }
     }
+    this.setupAfterTable();
+  }
+  setupAfterTable = () => {
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
