@@ -152,6 +152,9 @@ let feat_names = ['',
 // 'logical_and_all',
 // 'logical_and_merlin_test'];
 let datasets;
+let sel_ds;
+let sel_task;
+let ds_dict;
 function preload() {
   //my table is comma separated value "csv"
   //and has a header specifying the columns labels
@@ -169,16 +172,28 @@ function preload() {
 
 function setup() {
   let dataset_count = Object.keys(datasets).length;
-  // for (ds_n = 0; ds_n < dataset_count; ds_n++) {
+  console.log(datasets);// for (ds_n = 0; ds_n < dataset_count; ds_n++) {
   //   console.log(datasets[ds_n].name);
   // }
-  sel_ns_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
-  sel_ns_instructions.position(canvas_w, 50);
-  sel_ns = createSelect();
-  sel_ns.position(canvas_w, 100);
+  sel_ds_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
+  sel_ds_instructions.position(canvas_w, 50);
+  sel_ds = createSelect();
+  sel_ds.position(canvas_w, 100);
+  ds_dict = new p5.TypedDict();
+
   for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
-    sel_ns.option(datasets[ds_n].name);
+    sel_ds.option(datasets[ds_n].name);
+    ds_dict.create(datasets[ds_n].name, ds_n);
   }
+  console.log(ds_dict);
+  sel_ds.changed(dsSelect);
+
+  sel_task = createSelect();
+  sel_task.position(canvas_w, 125);
+  // sel_task_instructions = createP('Select a neuroscout dataset. (this does not work yet but the list is populated from the api)');
+  // sel_task_instructions.position(canvas_w, 50);
+  //sel_task.changed(taskSelect);
+
   // for (let i = 0; i < datasets.length; i++) {
   //   console.log(datasets[i].name);
   // }// for(ds of datasets){
@@ -350,6 +365,24 @@ function featSelect() { //called when you select a feature to visualize
     features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
     features[feature_n-1].loadFeatTable();
   }
+}
+
+function dsSelect() { //called when you select a neuroscout dataset
+  if (sel_ds.value() !== ''){
+    let ds_ind = ds_dict.get(sel_ds.value()); //ds index
+    let task_count = datasets[ds_ind].tasks.length;
+    
+    sel_task.remove();
+    sel_task = createSelect();
+    sel_task.position(canvas_w, 125);
+
+    task_dict = new p5.TypedDict();
+    for (let task_n = 0; task_n < task_count; task_n++) {
+      sel_task.option(datasets[ds_ind].tasks[task_n].name);
+      task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id);
+    }
+  }
+
 }
 
 function drawColumnLines() {
