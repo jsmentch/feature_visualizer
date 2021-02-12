@@ -338,7 +338,7 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.position(canvas_w, 150);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
-  console.log(runs);
+  //console.log(runs);
   let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
   loading_text.remove();
@@ -356,6 +356,7 @@ function runSelect(){ //called when a run is selected
 }
 
 function predictorlistLoad(){
+  console.log(run_id);
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
@@ -646,9 +647,12 @@ class Feature {
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
+      if (isNaN(load_tab_onset) || isNaN(load_tab_duration) || isNaN(load_tab_value)) { 
+        continue;
+      }
       for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
         if (m < duration_s) {
-          this.f_tab.setString(round(m*10),2,load_tab_value);
+          this.f_tab.setString(round(round(m,1)*10),2,load_tab_value);
         }
       }
     }
@@ -661,6 +665,12 @@ class Feature {
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
+      if (isNaN(load_tab_value) || typeof load_tab_value !== 'number') {
+        load_tab_value = 0;
+      }
+      if (isNaN(load_tab_onset) || isNaN(load_tab_duration) || isNaN(load_tab_value) || typeof load_tab_value !== 'number') { 
+        continue;
+      }
       for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
         if (m < duration_s) {
           this.f_tab.setString(round(m*10),2,load_tab_value);
