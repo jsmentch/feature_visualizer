@@ -18,6 +18,9 @@ let button_play;
 let button_load;
 let button_mute;
 
+let button_load_feature;
+let button_load_feature_instructions;
+
 let canvas2; //graphics renderer for coarse graph, background
 let canvas3; //graphics renderer for labels, overlay, foreground
 
@@ -211,6 +214,11 @@ function monitorEdits() {
   }
 }
 function addButtons() {
+  button_load_feature = createFileInput(handleFeature);
+  button_load_feature.position(canvas_w, 90);
+  button_load_feature_instructions = createP('(optional) Upload your own feature .tsv file');
+  button_load_feature_instructions.position(button_load_feature.x+button_load_feature.width, 70);
+
   // video play button
   button_play = createButton('play');
   button_play.position(canvas_w,130);
@@ -298,6 +306,39 @@ function keyPressed() {
 
 function exportFeature() { // export the current edited feature as a csv
   features[feature_n-1].exportFeatureTable(input_export_name.value());
+}
+
+function handleFeature(file) { //called when you select a feature to visualize
+  f_id = file.name.split('.').slice(0, -1).join('.');
+  let file_table = textToTable(file.data,f_id);
+  feature_n = feature_n + 1; //total number of features
+  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+  features[feature_n-1].loadInfoFromFile(file_table);
+}
+function textToTable(text,name) {
+  // convert tab seperated text to a table because can't load a .tsv file as a table
+  // text = text data
+  // name = string for third column, it is the feature name
+  let file_array = text.split('\n');
+  let table = new p5.Table();
+  table.addColumn("onset");
+  table.addColumn("duration");
+  table.addColumn(name);
+  for (var i=1; i<file_array.length-1; i++) {
+    y = file_array[i].split('\t');
+    //file_array[i] = y;
+    let newRow = table.addRow(); 
+    newRow.setString("onset",y[0]);
+    console.log(y)
+    newRow.setString("duration",y[1]);
+    newRow.setString(name,y[2]);
+  }
+  return table;
+}
+
+
+function loadFileTable(file_table) {
+  console.log(file_table);
 }
 
 function featSelect() { //called when you select a feature to visualize
@@ -597,7 +638,7 @@ class Feature {
   }
   loadFeatTable(){
     this.createNewFeature(); //make a new blank table at given sr and duration
-    this.load_tab = loadTable(f_folder + String(this.f_id) + '.tsv', 'tsv', 'header', this.loadInfoFromTable); //load specified feature table
+    this.load_tab = loadTable(this.f_id, 'tsv', 'header', this.loadInfoFromTable); //load specified feature table
     //this.loadInfoFromTable(this.load_tab);
   }
   createNewFeature() {
@@ -615,7 +656,24 @@ class Feature {
     }
     this.f_tab = table;
   }
-
+  loadInfoFromFile(data){
+    this.createNewFeature(); //make a new blank table at given sr and duration
+    let load_tab = data;
+    for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
+      let load_tab_onset = load_tab.get(r,0)-offset;
+      let load_tab_duration = load_tab.get(r,1);
+      let load_tab_value = load_tab.get(r,2);
+      if (isNaN(load_tab_onset) || isNaN(load_tab_duration) || isNaN(load_tab_value)) { 
+        continue;
+      }
+      for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
+        if (m >= 0 && m < duration_s-.2) {
+          this.f_tab.setString(round(m*10),2,load_tab_value);
+        }
+      }
+    }
+    this.setupAfterTable();
+  }
   loadInfoFromNS(){
     this.createNewFeature(); //make a new blank table at given sr and duration
     let load_tab = predictor_table;
@@ -762,6 +820,7 @@ class Feature {
     }
   }
 }
+
 
 function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
