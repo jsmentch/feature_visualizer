@@ -338,7 +338,7 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.position(canvas_w, 150);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
-  //console.log(runs);
+  console.log(runs);
   let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
   loading_text.remove();
@@ -356,7 +356,6 @@ function runSelect(){ //called when a run is selected
 }
 
 function predictorlistLoad(){
-  console.log(run_id);
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
@@ -390,7 +389,7 @@ function predictorSelect(){ //called when a predictor is selected
 
 
 function eventsLoaded(){ //called when predictor events are loaded
-  //console.log(predictor_events);
+  console.log(predictor_events);
 
   let events_count = Object.keys(predictor_events).length;
   predictor_table = new p5.Table();
@@ -643,6 +642,7 @@ class Feature {
   loadInfoFromNS(){
     this.createNewFeature(); //make a new blank table at given sr and duration
     let load_tab = predictor_table;
+
     for (let r = 0; r < load_tab.getRowCount()-1; r++) { //loop through rows of loaded table
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
@@ -651,7 +651,8 @@ class Feature {
         continue;
       }
       for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
-        if (m < duration_s) {
+        if (m < duration_s-.1) {
+          //console.log(m,duration_s)
           this.f_tab.setString(round(round(m,1)*10),2,load_tab_value);
         }
       }
