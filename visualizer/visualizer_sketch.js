@@ -51,8 +51,6 @@ let time_m; //time ms for printing time
 let time_s; //time s for printing time
 let feature_sr = 10; // srampling rate of feature, default to 10hz
 
-let stimuli_name = '';
-
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
 let feat_names = ['',
 'new_feature',
@@ -137,8 +135,16 @@ function setup() { //initial splash screen setup
 
   offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start. this is bugged');
   offset_set_instructions.position(canvas_w, 550);
-  offset_set = createInput('');
-  offset_set.position(canvas_w, 600);
+  offset_input = createInput('');
+  offset_input.position(canvas_w, 600);
+
+  button_offset = createButton('submit');
+  button_offset.position(offset_input.x + offset_input.width, 600);
+  button_offset.mousePressed(offset_set);
+}
+
+function offset_set() {
+  offset = offset_input.value();
 }
 
 function setup2() { //after splash screen setup
@@ -147,10 +153,8 @@ function setup2() { //after splash screen setup
   sel_task.hide();
   sel_predictor.hide();
   sel_run.hide();
-
   predictorlistLoad();
-  addButtons()
-	
+  addButtons();
   //old method of loading feature from folder - don't delete yet
   // sel = createSelect();
   // sel.position(canvas_w, );
@@ -159,7 +163,6 @@ function setup2() { //after splash screen setup
   // }
   // sel.selected(f_id);
   // sel.changed(featSelect);
-
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
@@ -244,42 +247,44 @@ function addButtons() {
 }
 //Keyboard Hotkeys
 function keyPressed() {
-  if (keyCode === 32) { //space
-    toggleVid();
-  }
-  if (keyCode === 69) { //e
-    toggleEdit();
-  }
-  if (keyCode === 49) { //1
-    half_speed();
-  }
-  if (keyCode === 50) { //2
-    normal_speed();
-  }
-  if (keyCode === 51) { //3
-    twice_speed();
-  }
-  if (keyCode === 77) { //m
-    mute_sound();
-  }
-  if (keyCode === 39) { //right arrow skip forward
-    if (vid.time()<duration_s-10) {
-      vid.time(vid.time()+10);
+  if (vid_loaded) {
+    if (keyCode === 32) { //space
+      toggleVid();
     }
-  }
-  if (keyCode === 37) { //left arrow
-    if (vid.time()>10) {
-      vid.time(vid.time()-10);
-    }  
-  }
-  if (keyCode === 38) { //up arrow vol up
-    if (vid.volume()<0.91) {
-      vid.volume(vid.volume()+0.1);
+    if (keyCode === 69) { //e
+      toggleEdit();
     }
-  }
-  if (keyCode === 40) { //down arrow vol down
-    if (vid.volume()>0.1) {
-      vid.volume(vid.volume()-0.1);
+    if (keyCode === 49) { //1
+      half_speed();
+    }
+    if (keyCode === 50) { //2
+      normal_speed();
+    }
+    if (keyCode === 51) { //3
+      twice_speed();
+    }
+    if (keyCode === 77) { //m
+      mute_sound();
+    }
+    if (keyCode === 39) { //right arrow skip forward
+      if (vid.time()<duration_s-10) {
+        vid.time(vid.time()+10);
+      }
+    }
+    if (keyCode === 37) { //left arrow
+      if (vid.time()>10) {
+        vid.time(vid.time()-10);
+      }  
+    }
+    if (keyCode === 38) { //up arrow vol up
+      if (vid.volume()<0.91) {
+        vid.volume(vid.volume()+0.1);
+      }
+    }
+    if (keyCode === 40) { //down arrow vol down
+      if (vid.volume()>0.1) {
+        vid.volume(vid.volume()-0.1);
+      }
     }
   }
 }
@@ -297,12 +302,7 @@ function featSelect() { //called when you select a feature to visualize
   }
 }
 
-
-
 //API STUFF
-
-
-
 function dsSelect() { //called when you select a neuroscout dataset
   ds_ind = ds_dict.get(sel_ds.value()); //ds index
   let task_count = datasets[ds_ind].tasks.length; // # of tasks in the dataset
@@ -317,10 +317,9 @@ function dsSelect() { //called when you select a neuroscout dataset
     task_dict.create(datasets[ds_ind].tasks[task_n].name, datasets[ds_ind].tasks[task_n].id); // add task name, id to dict
   }
   sel_task.changed(taskSelect);
-  sel_predictor.hide();
+  sel_predictor.hide(); //if changing dataset, hide predictor and run selectors
   sel_run.hide();
 }
-
 function taskSelect() { //called when you select a neuroscout task
   task_id = task_dict.get(sel_task.value());
   loading_text = createP('LOADING');
@@ -331,7 +330,6 @@ function taskSelect() { //called when you select a neuroscout task
   // predictors = loadJSON(predictors_url, predictorsLoaded)
   // sel_run.hide();
 }
-
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
   sel_run = createSelect();
@@ -348,18 +346,15 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.changed(runSelect);
   //console.log(runs);
 }
-
 function runSelect(){ //called when a run is selected
   run_id = sel_run.value();
   duration_s = run_dict.get(sel_run.value());
 }
-
 function predictorlistLoad(){
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
 }
-
 function predictorlistLoaded(){ //called when you load predictors for a selected task
   sel_predictor.remove();
   sel_predictor = createSelect();
@@ -374,32 +369,22 @@ function predictorlistLoaded(){ //called when you load predictors for a selected
   }
   sel_predictor.changed(predictorSelect);
 }
-
 function predictorSelect(){ //called when a predictor is selected
   predictor_id = predictor_dict.get(sel_predictor.value());
   loading_text = createP('LOADING');
-  loading_text.position(canvas_w-100, 50);
-  // let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
-  // runs = loadJSON(run_url, runLoaded);
   let predictors_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true'
   predictor_events = loadJSON(predictors_url, eventsLoaded)
   sel_run.hide();
 }
-
-
 function eventsLoaded(){ //called when predictor events are loaded
   //console.log(predictor_events);
-
   let events_count = Object.keys(predictor_events).length;
   predictor_table = new p5.Table();
-
-
   predictor_table.addColumn("onset");
   predictor_table.addColumn("duration");
   predictor_table.addColumn("value");
   for (let e = 0; e < events_count; e++) {
     let newRow = predictor_table.addRow(); // Create new row object 
-    // Add data to it using setString() 
     newRow.setString("onset",predictor_events[e].onset);
     newRow.setString("duration",predictor_events[e].duration);
     newRow.setString("value",predictor_events[e].value);
@@ -410,22 +395,6 @@ function eventsLoaded(){ //called when predictor events are loaded
   features[feature_n-1].loadInfoFromNS();
   loading_text.remove();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function drawColumnLines() {
   canvas2.stroke(75);
@@ -571,7 +540,8 @@ function hideSplash() {
   button_load.hide();
   button_dummy_instructions.hide();
   button_dummy.hide();
-  offset_set.hide();
+  offset_input.hide();
+  button_offset.hide();
   offset_set_instructions.hide();
 }
 
@@ -649,7 +619,7 @@ class Feature {
         continue;
       }
       for (let m = round(load_tab_onset,1); m < round(load_tab_onset,1) + round(load_tab_duration,1) ; m = m + .1) { //set rows within onset, duration of 
-        if (m < duration_s-.2) {
+        if (m >= 0 && m < duration_s-.2) {
           this.f_tab.setString(round(m*10),2,load_tab_value);
         }
       }
