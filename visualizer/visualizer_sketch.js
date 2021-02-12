@@ -46,6 +46,7 @@ let editing = false
 let muted = false;
 let completion = 0;
 let duration_s = 1538; //stimulus duration in seconds - updated in setup()
+let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
@@ -190,19 +191,25 @@ function draw() {
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
   }
-  // edit mode stuff - break into fn?
   scrub();
+  monitorEdits();
+}
+
+function monitorEdits() {
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //get time point to edit from mouse location
-    if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
-      features[feature_n-1].editValue(click_time/duration_s, 1);// given time point and value to set
-    }
-    else if (keyIsDown(16)) {
-      features[feature_n-1].editValue(click_time/duration_s, 0);// given time point and value to set
+    if (click_time >= 0 && click_time < dummy_duration_s) {
+      if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
+        features[feature_n-1].editValue(click_time/dummy_duration_s, 1);// given time point and value to set
+        //console.log(click_time/duration_s, 1)
+        console.log(click_time,dummy_duration_s)
+      }
+      else if (keyIsDown(16)) {
+        features[feature_n-1].editValue(click_time/dummy_duration_s, 0);// given time point and value to set
+      }
     }
   }
 }
-
 function addButtons() {
   // video play button
   button_play = createButton('play');
@@ -575,7 +582,7 @@ function handleVideo(file) {
 }
 
 function vidLoad() {
-  duration_s = vid.duration();
+  vid_duration_s = vid.duration();
   vid_speed = 1;
   drawAxisX();
 }
