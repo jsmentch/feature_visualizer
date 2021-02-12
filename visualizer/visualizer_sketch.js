@@ -132,7 +132,7 @@ function setup() { //initial splash screen setup
 
   button_dummy_instructions = createP('OR: use a blank placeholder');
   button_dummy_instructions.position(canvas_w, 450);
-  button_dummy = createButton('handleDummy');
+  button_dummy = createButton('No Video');
   button_dummy.position(canvas_w, 500);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
