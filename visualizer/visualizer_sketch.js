@@ -725,15 +725,18 @@ class Feature {
     let time_s = (time % 60);
     text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, vid_h+slider_h+150); 
     stroke(this.c);
-    if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
+    //if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
+        if (current_rowindex+i < 0 || current_rowindex+i+2 > this.f_tab.getRowCount() ) {
+          continue;
+        }
         let px = map(completion+i, 0, 100, 0, column1_w);
         let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
         let x = map(completion+i+1, 0, 100, 0, column1_w);
         let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
         line(px, py, x, y);
       }
-    } 
+    //} 
   }
 
   //make an overlaid bar of the instantaneous feature level
