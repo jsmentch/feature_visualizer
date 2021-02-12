@@ -338,12 +338,13 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.position(canvas_w, 150);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
+  console.log(runs);
   let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
   loading_text.remove();
   for (let r_n = 0; r_n < run_count; r_n++) {
     sel_run.option(runs[r_n].id);
-    //run_dict.create(runs[r_n].id, runs[r_n].id);
+    run_dict.create(runs[r_n].id, runs[r_n].duration);
   }
   sel_run.changed(runSelect);
   //console.log(runs);
@@ -351,6 +352,7 @@ function runLoaded() { //after selecting a task, runs are loaded
 
 function runSelect(){ //called when a run is selected
   run_id = sel_run.value();
+  duration_s = run_dict.get(sel_run.value());
 }
 
 function predictorlistLoad(){
