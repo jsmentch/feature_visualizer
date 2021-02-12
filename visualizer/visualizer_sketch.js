@@ -133,7 +133,7 @@ function setup() { //initial splash screen setup
   button_dummy.position(canvas_w, 500);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
-  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start. this is bugged');
+  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start.');
   offset_set_instructions.position(canvas_w, 550);
   offset_input = createInput('');
   offset_input.position(canvas_w, 600);
