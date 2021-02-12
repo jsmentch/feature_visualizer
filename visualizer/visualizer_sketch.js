@@ -52,6 +52,8 @@ let time_m; //time ms for printing time
 let time_s; //time s for printing time
 let feature_sr = 10; // srampling rate of feature, default to 10hz
 
+let duration_ratio;
+
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
 let feat_names = ['',
 'new_feature',
@@ -197,12 +199,10 @@ function draw() {
 
 function monitorEdits() {
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
-    let click_time = vid.time()+map((mouseX/column1_w),0,1,-5,5); //get time point to edit from mouse location
+    let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
     if (click_time >= 0 && click_time < dummy_duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
         features[feature_n-1].editValue(click_time/dummy_duration_s, 1);// given time point and value to set
-        //console.log(click_time/duration_s, 1)
-        console.log(click_time,dummy_duration_s)
       }
       else if (keyIsDown(16)) {
         features[feature_n-1].editValue(click_time/dummy_duration_s, 0);// given time point and value to set
@@ -564,6 +564,7 @@ function handleDummy() {
 
 function dummyLoad() {
   dummy_duration_s = vid.duration();
+  duration_ratio = dummy_duration_s/duration_s;
   vid_speed = dummy_duration_s/duration_s; // if loading dummy vid, set new base video speed
   vid.speed(vid_speed);
   drawAxisX();
