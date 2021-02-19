@@ -189,7 +189,7 @@ function draw() {
     rect(completion*column1_w, vid_h, 3, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     if (feat_selected) {
-      for (let i = features.length-1; i > 0 ; i--) {
+      for (let i = features.length-1; i >= 0 ; i--) {
         features[i].drawFeatureSliding();
         features[i].drawInstantaneous();  
       }
@@ -315,7 +315,8 @@ function exportFeature() { // export the current edited feature as a csv
 function handleFeature(file) { //called when you select a feature to visualize
   f_id = file.name.split('.').slice(0, -1).join('.');
   let file_table = textToTable(file.data,f_id);
-  feature_n = feature_n + 1; //total number of features
+  feature_n = features.length;
+  //feature_n = feature_n + 1; //total number of features
   features.push(new Feature(f_id, feature_n,1,file_table));
   //features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
   //features[feature_n-1].loadInfoFromFile(file_table);
@@ -341,7 +342,6 @@ function textToTable(text,name) {
   return table;
 }
 
-
 function loadFileTable(file_table) {
   console.log(file_table);
 }
@@ -349,7 +349,9 @@ function loadFileTable(file_table) {
 function featSelect() { //called when you select a feature to visualize
   if (sel.value() !== ''){
     f_id = sel.value();
-    feature_n = feature_n + 1; //total number of features
+    //feature_n = feature_n + 1; //total number of features
+    feature_n = features.length;
+
     features.push(new Feature(f_id, feature_n));
     //features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
     features[feature_n-1].loadFeatTable();
@@ -444,7 +446,8 @@ function eventsLoaded(){ //called when predictor events are loaded
     newRow.setString("value",predictor_events[e].value);
   }
   f_id = sel_predictor.value();
-  feature_n = feature_n + 1; //total number of features
+  //feature_n = feature_n + 1; //total number of features
+  feature_n = features.length;
   features.push(new Feature(f_id, feature_n,2));
 //  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
   //features[feature_n-1].loadInfoFromNS();
@@ -878,7 +881,6 @@ class Feature {
     }
   }
 }
-
 
 function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
