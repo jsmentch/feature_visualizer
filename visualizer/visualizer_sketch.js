@@ -1,11 +1,9 @@
-let offset = 0 //25.5; // merlin movie started at 25.5 seconds..
-
 let vid = null; //video object
 let vid_loaded = false;
 
 let feat_selected = false;
 
-let f_id = 'dummy'; // start on a dummy feature for now...
+let f_id; // start on a dummy feature for now...
 let f_folder = './assets/'
 
 let features = [];
@@ -14,6 +12,7 @@ let feature_n = 0;
 
 let instructions; //html text instrucitons
 
+let delete_buttons = [];
 let button_play;
 let button_load;
 let button_mute;
@@ -44,7 +43,7 @@ let max_feat;
 let new_feature = 1; //now unused
 
 //time info
-let vid_speed =1;
+let vid_speed = 1;
 let playing = false;
 let editing = false
 let muted = false;
@@ -54,8 +53,8 @@ let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
-let feature_sr = 10; // srampling rate of feature, default to 10hz
-
+let feature_sr = 10; // sampling rate of feature, default to 10hz
+let offset = 0;  //25.5; // merlin movie started at 25.5 seconds..
 let duration_ratio;
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
@@ -201,7 +200,6 @@ function draw() {
   }
   scrub();
   monitorEdits();
-  deleteFeature();
 }
 
 function monitorEdits() {
@@ -316,10 +314,8 @@ function handleFeature(file) { //called when you select a feature to visualize
   f_id = file.name.split('.').slice(0, -1).join('.');
   let file_table = textToTable(file.data,f_id);
   feature_n = features.length;
-  //feature_n = feature_n + 1; //total number of features
   features.push(new Feature(f_id, feature_n,1,file_table));
-  //features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  //features[feature_n-1].loadInfoFromFile(file_table);
+
 }
 function textToTable(text,name) {
   // convert tab seperated text to a table because can't load a .tsv file as a table
@@ -349,11 +345,8 @@ function loadFileTable(file_table) {
 function featSelect() { //called when you select a feature to visualize
   if (sel.value() !== ''){
     f_id = sel.value();
-    //feature_n = feature_n + 1; //total number of features
     feature_n = features.length;
-
     features.push(new Feature(f_id, feature_n));
-    //features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
     features[feature_n-1].loadFeatTable();
   }
 }
@@ -446,12 +439,11 @@ function eventsLoaded(){ //called when predictor events are loaded
     newRow.setString("value",predictor_events[e].value);
   }
   f_id = sel_predictor.value();
-  //feature_n = feature_n + 1; //total number of features
   feature_n = features.length;
-  features.push(new Feature(f_id, feature_n,2));
-//  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  //features[feature_n-1].loadInfoFromNS();
+  features.push(new Feature(f_id, feature_n, 2));
+  delete_buttons.push(new DeleteButton(feature_n));
   loading_text.remove();
+  console.log(features)
 }
 
 function drawColumnLines() {
@@ -501,25 +493,44 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   }
 }
 
-function deleteFeature(){
-  let delete_h_t = 12+ 57 +10//*(this.feature_n-1)+10;
-  let delete_w_l = vid_w+180;
-  if (mouseIsPressed){
-    if (mouseX > delete_w_l && mouseX < delete_w_l+30 && mouseY > delete_h_t && mouseY < delete_h_t+30){
-      console.log(0);
-      features.splice(features[0],1);
-      clearFeaturePanel();
-      for (let i = features.length-1; i > 0 ; i--) {
-        features[i].setFeature_n(i);
-        features[i].setupAfterTable();
-      }
-    // console.log(features[this.feature_n-1]);
-    // features.splice(this.feature_n-1,1);
-    // console.log(features.length);
-    
-    }
+class DeleteButton {
+  constructor(f_n) {
+    this.f_n = f_n;
+    console.log(this.f_n);
+    this.button = createButton('x')
+    this.delete_w_l = vid_w+200;
+    this.delete_h_t = 12+57*(this.f_n+1);
+    //console.log(this.delete_w_l,this.delete_h_t);
+    this.button.position(this.delete_w_l,this.delete_h_t);
+    this.button.mousePressed(this.clicked);
+  }
+  clicked = () => {
+    deleteFeature(this.f_n);
   }
 }
+
+function deleteFeature(feature2delete){
+  // for (let i = features.length-1; i > 0 ; i--) {
+  //   // draw a clickable square to delete the feature
+  //   let delete_w_l = vid_w+180;
+  //   let delete_h_t = 12+57*(i)+10;
+  //   canvas3.rect(delete_w_l,delete_h_t,30,30);
+  //   canvas3.line(delete_w_l,delete_h_t,delete_w_l+30,delete_h_t+30);
+  //   canvas3.line(delete_w_l,delete_h_t+30,delete_w_l+30,delete_h_t);
+  // }
+  console.log(feature2delete)
+  features.splice(features[feature2delete],1);
+  clearFeaturePanel();
+  for (let i = features.length-1; i > 0 ; i--) {
+    features[i].setFeature_n(i);
+    features[i].setupAfterTable();
+  }
+// console.log(features[this.feature_n-1]);
+// features.splice(this.feature_n-1,1);
+// console.log(features.length);
+
+}
+
 
 function clearFeaturePanel(){
   // canvas3.fill(0);
@@ -788,7 +799,7 @@ class Feature {
       canvas2.line(px, py, x, y);
     }
     //drawMetaData() {
-    let meta_h = 12+ 57 *(this.feature_n-1);
+    let meta_h = 12+ 57 *(this.feature_n);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
@@ -807,12 +818,6 @@ class Feature {
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
     canvas3.translate(-feature_n*30,-vid_h+30);
-    // draw a clickable square to delete the feature
-    let delete_w_l = vid_w+180;
-    let delete_h_t = meta_h+10;
-    canvas3.rect(delete_w_l,delete_h_t,30,30);
-    canvas3.line(delete_w_l,delete_h_t,delete_w_l+30,delete_h_t+30);
-    canvas3.line(delete_w_l,delete_h_t+30,delete_w_l+30,delete_h_t);
     feat_selected = true; //the feature is selected and loaded, so draw it now
   }
   //edit the feature value in the table
