@@ -331,7 +331,6 @@ function textToTable(text,name) {
     //file_array[i] = y;
     let newRow = table.addRow(); 
     newRow.setString("onset",y[0]);
-    console.log(y)
     newRow.setString("duration",y[1]);
     newRow.setString(name,y[2]);
   }
@@ -339,7 +338,7 @@ function textToTable(text,name) {
 }
 
 function loadFileTable(file_table) {
-  console.log(file_table);
+  //console.log(file_table);
 }
 
 function featSelect() { //called when you select a feature to visualize
@@ -443,7 +442,6 @@ function eventsLoaded(){ //called when predictor events are loaded
   features.push(new Feature(f_id, feature_n, 2));
   delete_buttons.push(new DeleteButton(feature_n));
   loading_text.remove();
-  console.log(features)
 }
 
 function drawColumnLines() {
@@ -496,7 +494,6 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
 class DeleteButton {
   constructor(f_n) {
     this.f_n = f_n;
-    console.log(this.f_n);
     this.button = createButton('x')
     this.delete_w_l = vid_w+200;
     this.delete_h_t = 12+57*(this.f_n+1);
@@ -510,27 +507,19 @@ class DeleteButton {
 }
 
 function deleteFeature(feature2delete){
-  // for (let i = features.length-1; i > 0 ; i--) {
-  //   // draw a clickable square to delete the feature
-  //   let delete_w_l = vid_w+180;
-  //   let delete_h_t = 12+57*(i)+10;
-  //   canvas3.rect(delete_w_l,delete_h_t,30,30);
-  //   canvas3.line(delete_w_l,delete_h_t,delete_w_l+30,delete_h_t+30);
-  //   canvas3.line(delete_w_l,delete_h_t+30,delete_w_l+30,delete_h_t);
-  // }
-  console.log(feature2delete)
-  features.splice(features[feature2delete],1);
+  console.log(features);
+  features.splice(feature2delete,1);
+  console.log(features);
+  for (let i = delete_buttons.length-1; i >= 0 ; i--) {
+    delete_buttons[i].button.remove();
+  }
   clearFeaturePanel();
-  for (let i = features.length-1; i > 0 ; i--) {
+  for (let i = features.length-1; i >= 0 ; i--) {
     features[i].setFeature_n(i);
     features[i].setupAfterTable();
+    delete_buttons.push(new DeleteButton(i));
   }
-// console.log(features[this.feature_n-1]);
-// features.splice(this.feature_n-1,1);
-// console.log(features.length);
-
 }
-
 
 function clearFeaturePanel(){
   // canvas3.fill(0);
@@ -685,9 +674,10 @@ class Feature {
     this.input=input;
     this.f_id = f_id;
     this.feature_n = feature_n;
+
     this.type=type;
     colorMode(HSB, 360, 100, 100, 100);
-    this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
+    this.c = color((((feature_n+1)*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
     if (this.type == 0) {
       this.loadInfoFromTable(this.input);
     }
