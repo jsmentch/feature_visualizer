@@ -328,7 +328,6 @@ function textToTable(text,name) {
   table.addColumn(name);
   for (var i=1; i<file_array.length-1; i++) {
     y = file_array[i].split('\t');
-    //file_array[i] = y;
     let newRow = table.addRow(); 
     newRow.setString("onset",y[0]);
     newRow.setString("duration",y[1]);
@@ -374,9 +373,6 @@ function taskSelect() { //called when you select a neuroscout task
   loading_text.position(canvas_w-100, 50);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
-  // let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
-  // predictors = loadJSON(predictors_url, predictorsLoaded)
-  // sel_run.hide();
 }
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
@@ -497,7 +493,6 @@ class DeleteButton {
     this.button = createButton('x')
     this.delete_w_l = vid_w+200;
     this.delete_h_t = 12+57*(this.f_n+1);
-    //console.log(this.delete_w_l,this.delete_h_t);
     this.button.position(this.delete_w_l,this.delete_h_t);
     this.button.mousePressed(this.clicked);
   }
@@ -507,9 +502,7 @@ class DeleteButton {
 }
 
 function deleteFeature(feature2delete){
-  console.log(features);
   features.splice(feature2delete,1);
-  console.log(features);
   for (let i = delete_buttons.length-1; i >= 0 ; i--) {
     delete_buttons[i].button.remove();
   }
@@ -522,15 +515,10 @@ function deleteFeature(feature2delete){
 }
 
 function clearFeaturePanel(){
-  // canvas3.fill(0);
-  // canvas3.rect(vid_w+6,0,1000,1000);
-  // //also clear coarse timeline
   canvas3.clear()
   canvas2.clear()
-  // canvas2.fill(0)
-  // canvas2.rect(0,vid_h,column1_w,74);
-
 }
+
 function scrub() {
   //navigation in coarse window
   if (!editing && mouseIsPressed) { // if edit mode is off, do allow skipping
@@ -674,7 +662,6 @@ class Feature {
     this.input=input;
     this.f_id = f_id;
     this.feature_n = feature_n;
-
     this.type=type;
     colorMode(HSB, 360, 100, 100, 100);
     this.c = color((((feature_n+1)*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
@@ -756,9 +743,6 @@ class Feature {
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
-      // if (isNaN(load_tab_value) || typeof load_tab_value !== 'number') {
-      //   load_tab_value = 0;
-      // }
       if (isNaN(load_tab_onset) || isNaN(load_tab_duration) || isNaN(load_tab_value)) { 
         continue;
       }
@@ -779,11 +763,8 @@ class Feature {
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
     for (let r = 1; r < this.f_tab.getRowCount(); r++) {
-      // print(f_tab.getRowCount());
-      //let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w); //map x time from s to px x
       let px = map(r-1, 0, this.f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
       let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
-      //let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
       let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
       let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
@@ -803,11 +784,11 @@ class Feature {
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
-    canvas3.translate(feature_n*30,vid_h-30)
+    canvas3.translate(this.feature_n*30,vid_h-30)
     canvas3.rotate(-PI/2);
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
-    canvas3.translate(-feature_n*30,-vid_h+30);
+    canvas3.translate(-this.feature_n*30,-vid_h+30);
     feat_selected = true; //the feature is selected and loaded, so draw it now
   }
   //edit the feature value in the table
