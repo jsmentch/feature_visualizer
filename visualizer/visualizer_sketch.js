@@ -1,11 +1,9 @@
-let offset = 0 //25.5; // merlin movie started at 25.5 seconds..
-
 let vid = null; //video object
 let vid_loaded = false;
 
 let feat_selected = false;
 
-let f_id = 'dummy'; // start on a dummy feature for now...
+let f_id; // start on a dummy feature for now...
 let f_folder = './assets/'
 
 let features = [];
@@ -14,6 +12,7 @@ let feature_n = 0;
 
 let instructions; //html text instrucitons
 
+let delete_buttons = [];
 let button_play;
 let button_load;
 let button_mute;
@@ -22,7 +21,8 @@ let button_load_feature;
 let button_load_feature_instructions;
 
 let canvas2; //graphics renderer for coarse graph, background
-let canvas3; //graphics renderer for labels, overlay, foreground
+let canvas3; //graphics renderer for labels
+let canvas4; // highest level overlay
 
 //dimensions
 let column1_w = 640;
@@ -43,7 +43,7 @@ let max_feat;
 let new_feature = 1; //now unused
 
 //time info
-let vid_speed =1;
+let vid_speed = 1;
 let playing = false;
 let editing = false
 let muted = false;
@@ -53,8 +53,8 @@ let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
 let time_s; //time s for printing time
-let feature_sr = 10; // srampling rate of feature, default to 10hz
-
+let feature_sr = 10; // sampling rate of feature, default to 10hz
+let offset = 0;  //25.5; // merlin movie started at 25.5 seconds..
 let duration_ratio;
 
 // list all of the csv files... do this with the api? node.js? a file with all of the names? 
@@ -125,7 +125,8 @@ function setup() { //initial splash screen setup
 
   createCanvas(canvas_w, canvas_h); // create main canvas
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
-  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels, overlay, foreground
+  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
+  canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
   canvas3.clear();
   // video load button
   button_load_instructions = createP('NEXT: Select a local video file of the stimulus');
@@ -187,7 +188,7 @@ function draw() {
     rect(completion*column1_w, vid_h, 3, slider_h); 
     image(vid,0,0,vid_w, vid_h); //display video
     if (feat_selected) {
-      for (let i = 0; i < feature_n; i++) {
+      for (let i = features.length-1; i >= 0 ; i--) {
         features[i].drawFeatureSliding();
         features[i].drawInstantaneous();  
       }
@@ -195,6 +196,7 @@ function draw() {
     drawCurrentTime();
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
+    image(canvas4,0,0); //display grid
   }
   scrub();
   monitorEdits();
@@ -311,9 +313,9 @@ function exportFeature() { // export the current edited feature as a csv
 function handleFeature(file) { //called when you select a feature to visualize
   f_id = file.name.split('.').slice(0, -1).join('.');
   let file_table = textToTable(file.data,f_id);
-  feature_n = feature_n + 1; //total number of features
-  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  features[feature_n-1].loadInfoFromFile(file_table);
+  feature_n = features.length;
+  features.push(new Feature(f_id, feature_n,1,file_table));
+
 }
 function textToTable(text,name) {
   // convert tab seperated text to a table because can't load a .tsv file as a table
@@ -326,26 +328,23 @@ function textToTable(text,name) {
   table.addColumn(name);
   for (var i=1; i<file_array.length-1; i++) {
     y = file_array[i].split('\t');
-    //file_array[i] = y;
     let newRow = table.addRow(); 
     newRow.setString("onset",y[0]);
-    console.log(y)
     newRow.setString("duration",y[1]);
     newRow.setString(name,y[2]);
   }
   return table;
 }
 
-
 function loadFileTable(file_table) {
-  console.log(file_table);
+  //console.log(file_table);
 }
 
 function featSelect() { //called when you select a feature to visualize
   if (sel.value() !== ''){
     f_id = sel.value();
-    feature_n = feature_n + 1; //total number of features
-    features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
+    feature_n = features.length;
+    features.push(new Feature(f_id, feature_n));
     features[feature_n-1].loadFeatTable();
   }
 }
@@ -374,9 +373,6 @@ function taskSelect() { //called when you select a neuroscout task
   loading_text.position(canvas_w-100, 50);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
-  // let predictors_url = 'https://neuroscout.org/api/tasks/'+task_id+'/predictors?active_only=true&newest=true'
-  // predictors = loadJSON(predictors_url, predictorsLoaded)
-  // sel_run.hide();
 }
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
@@ -438,29 +434,29 @@ function eventsLoaded(){ //called when predictor events are loaded
     newRow.setString("value",predictor_events[e].value);
   }
   f_id = sel_predictor.value();
-  feature_n = feature_n + 1; //total number of features
-  features[feature_n-1] = new Feature(f_id, feature_n); //instantiate new feature
-  features[feature_n-1].loadInfoFromNS();
+  feature_n = features.length;
+  features.push(new Feature(f_id, feature_n, 2));
+  delete_buttons.push(new DeleteButton(feature_n));
   loading_text.remove();
 }
 
 function drawColumnLines() {
-  canvas2.stroke(75);
-  canvas2.strokeWeight(3);
-  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
-  canvas2.stroke(100);
-  canvas2.strokeWeight(1);
-  canvas2.line(column1_w+3,0,column1_w+1,canvas_h);
+  canvas4.stroke(75);
+  canvas4.strokeWeight(3);
+  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
+  canvas4.stroke(100);
+  canvas4.strokeWeight(1);
+  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
 }
 
 function drawPanelLabels() {
-  canvas3.fill(200)
-  canvas3.textSize(15);
-  canvas3.text("Coarse Timeline",2,vid_h-2);
-  canvas3.text("Fine Timeline",2,vid_h+slider_h+135);
-  canvas3.stroke(0);
-  canvas3.strokeWeight(1);
-  canvas3.fill(255);
+  canvas4.fill(200)
+  canvas4.textSize(15);
+  canvas4.text("Coarse Timeline",2,vid_h-2);
+  canvas4.text("Fine Timeline",2,vid_h+slider_h+135);
+  canvas4.stroke(0);
+  canvas4.strokeWeight(1);
+  canvas4.fill(255);
 }
 
 function drawCurrentTime() {
@@ -491,14 +487,46 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   }
 }
 
+class DeleteButton {
+  constructor(f_n) {
+    this.f_n = f_n;
+    this.button = createButton('x')
+    this.delete_w_l = vid_w+200;
+    this.delete_h_t = 12+57*(this.f_n+1);
+    this.button.position(this.delete_w_l,this.delete_h_t);
+    this.button.mousePressed(this.clicked);
+  }
+  clicked = () => {
+    deleteFeature(this.f_n);
+  }
+}
+
+function deleteFeature(feature2delete){
+  features.splice(feature2delete,1);
+  for (let i = delete_buttons.length-1; i >= 0 ; i--) {
+    delete_buttons[i].button.remove();
+  }
+  clearFeaturePanel();
+  for (let i = features.length-1; i >= 0 ; i--) {
+    features[i].setFeature_n(i);
+    features[i].setupAfterTable();
+    delete_buttons.push(new DeleteButton(i));
+  }
+}
+
+function clearFeaturePanel(){
+  canvas3.clear()
+  canvas2.clear()
+}
+
 function scrub() {
   //navigation in coarse window
-  if (!editing) { // if edit mode is off, do allow skipping
-    if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
+  if (!editing && mouseIsPressed) { // if edit mode is off, do allow skipping
+    if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
       vid.time((mouseX/column1_w) * vid.duration());
     }
     //navigation in fine window
-    else if (mouseIsPressed && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+    else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
     }
@@ -555,30 +583,30 @@ function getCoarseVals(r){
   return px_avg;
 }
 
-//draw axis labels to canvas2
+//draw axis labels to canvas4
 function drawAxisX(){
   if (duration_s > 0) {
-    canvas2.stroke(250);
-    canvas2.strokeWeight(0.7);
-    canvas2.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
+    canvas4.stroke(250);
+    canvas4.strokeWeight(0.7);
+    canvas4.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
     for (let i=0; i < 11; i++) { 
       let xPos = (0 + (i*column1_w/10));
   //x ticks    
-      canvas2.stroke(250);
-      canvas2.strokeWeight(0.7);
-      canvas2.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
+      canvas4.stroke(250);
+      canvas4.strokeWeight(0.7);
+      canvas4.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
   //x tick labels
-      canvas2.textSize(10);
-      canvas2.stroke(250);
-      canvas2.strokeWeight(0);
-      canvas2.fill(255);
-      canvas2.textAlign(CENTER, CENTER);
-      canvas2.translate(xPos,vid_h+slider_h+10);
-      canvas2.rotate(PI/6);
+      canvas4.textSize(10);
+      canvas4.stroke(250);
+      canvas4.strokeWeight(0);
+      canvas4.fill(255);
+      canvas4.textAlign(CENTER, CENTER);
+      canvas4.translate(xPos,vid_h+slider_h+10);
+      canvas4.rotate(PI/6);
       cur_time = i*duration_s/10;
-      canvas2.text(secondsToMinSec(cur_time),2,0);
-      canvas2.rotate(-PI/6);
-      canvas2.translate(-xPos,-vid_h-slider_h-10);
+      canvas4.text(secondsToMinSec(cur_time),2,0);
+      canvas4.rotate(-PI/6);
+      canvas4.translate(-xPos,-vid_h-slider_h-10);
     }
   }
 }
@@ -630,11 +658,25 @@ function vidLoad() {
 }
 
 class Feature {
-  constructor(f_id,feature_n) {
-  this.f_id = f_id;
-  this.feature_n = feature_n;
-  colorMode(HSB, 360, 100, 100, 100);
-  this.c = color(((feature_n*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
+  constructor(f_id,feature_n,type,input) {
+    this.input=input;
+    this.f_id = f_id;
+    this.feature_n = feature_n;
+    this.type=type;
+    colorMode(HSB, 360, 100, 100, 100);
+    this.c = color((((feature_n+1)*105)-105)%360, 100-(20*feature_n/5), 100-(20*feature_n/5), 60);
+    if (this.type == 0) {
+      this.loadInfoFromTable(this.input);
+    }
+    else if (this.type == 1) {
+      this.loadInfoFromFile(this.input);
+    }
+    else if (this.type == 2) {
+      this.loadInfoFromNS();
+    }
+  }
+  setFeature_n(feature_n_new){
+    this.feature_n=feature_n_new;
   }
   loadFeatTable(){
     this.createNewFeature(); //make a new blank table at given sr and duration
@@ -643,6 +685,8 @@ class Feature {
   }
   createNewFeature() {
     let table = new p5.Table();
+    let delete_w_l; 
+    let delete_h_t;
     table.addColumn("onset");
     table.addColumn("duration");
     table.addColumn("value");
@@ -699,9 +743,6 @@ class Feature {
       let load_tab_onset = load_tab.get(r,0)-offset;
       let load_tab_duration = load_tab.get(r,1);
       let load_tab_value = load_tab.get(r,2);
-      // if (isNaN(load_tab_value) || typeof load_tab_value !== 'number') {
-      //   load_tab_value = 0;
-      // }
       if (isNaN(load_tab_onset) || isNaN(load_tab_duration) || isNaN(load_tab_value)) { 
         continue;
       }
@@ -722,18 +763,14 @@ class Feature {
     canvas2.stroke(this.c);
     canvas2.strokeWeight(1);
     for (let r = 1; r < this.f_tab.getRowCount(); r++) {
-      // print(f_tab.getRowCount());
-      //let px = map(f_tab.getString(r-1, 0), 0, 1539, 0, column1_w); //map x time from s to px x
       let px = map(r-1, 0, this.f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
-
       let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
-      //let x = map(f_tab.getString(r, 0), 0, 1539, 0, column1_w);
       let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
       let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
       canvas2.line(px, py, x, y);
     }
     //drawMetaData() {
-    let meta_h = 12+ 57 *(this.feature_n-1);
+    let meta_h = 12+ 57 *(this.feature_n);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
@@ -747,11 +784,11 @@ class Feature {
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
-    canvas3.translate(feature_n*30,vid_h-30)
+    canvas3.translate(this.feature_n*30,vid_h-30)
     canvas3.rotate(-PI/2);
     canvas3.text(String(this.f_id),10,12);
     canvas3.rotate(PI/2);
-    canvas3.translate(-feature_n*30,-vid_h+30);
+    canvas3.translate(-this.feature_n*30,-vid_h+30);
     feat_selected = true; //the feature is selected and loaded, so draw it now
   }
   //edit the feature value in the table
@@ -820,7 +857,6 @@ class Feature {
     }
   }
 }
-
 
 function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
