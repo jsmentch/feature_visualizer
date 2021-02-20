@@ -1,6 +1,9 @@
 let vid = null; //video object
 let vid_loaded = false;
 
+let loading = false;
+let loading_text;
+
 let feat_selected = false;
 
 let f_id; // start on a dummy feature for now...
@@ -197,9 +200,9 @@ function draw() {
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
     image(canvas4,0,0); //display grid
+    scrub();
+    monitorEdits();
   }
-  scrub();
-  monitorEdits();
 }
 
 function monitorEdits() {
@@ -264,7 +267,7 @@ function addButtons() {
 }
 //Keyboard Hotkeys
 function keyPressed() {
-  if (vid_loaded) {
+  if (vid_loaded && loading==false) {
     if (keyCode === 32) { //space
       toggleVid();
     }
@@ -368,9 +371,8 @@ function dsSelect() { //called when you select a neuroscout dataset
   sel_run.hide();
 }
 function taskSelect() { //called when you select a neuroscout task
+  startLoading();
   task_id = task_dict.get(sel_task.value());
-  loading_text = createP('LOADING');
-  loading_text.position(canvas_w-100, 50);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
 }
@@ -382,7 +384,7 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.selected('Select a run');
   let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
-  loading_text.remove();
+  doneLoading();
   for (let r_n = 0; r_n < run_count; r_n++) {
     sel_run.option(runs[r_n].id);
     run_dict.create(runs[r_n].id, runs[r_n].duration);
@@ -395,6 +397,7 @@ function runSelect(){ //called when a run is selected
   duration_s = run_dict.get(sel_run.value());
 }
 function predictorlistLoad(){
+  startLoading();
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
@@ -412,10 +415,11 @@ function predictorlistLoaded(){ //called when you load predictors for a selected
     predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
   }
   sel_predictor.changed(predictorSelect);
+  doneLoading();
 }
 function predictorSelect(){ //called when a predictor is selected
   predictor_id = predictor_dict.get(sel_predictor.value());
-  loading_text = createP('LOADING');
+  startLoading();
   let predictors_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true'
   predictor_events = loadJSON(predictors_url, eventsLoaded)
   sel_run.hide();
@@ -437,7 +441,7 @@ function eventsLoaded(){ //called when predictor events are loaded
   feature_n = features.length;
   features.push(new Feature(f_id, feature_n, 2));
   delete_buttons.push(new DeleteButton(feature_n));
-  loading_text.remove();
+  doneLoading();
 }
 
 function drawColumnLines() {
@@ -486,6 +490,23 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
     ellipse(vid_w-50,vid_h-50,50,50);  //add a recording sign when editing
   }
 }
+
+function startLoading() {
+  loading = true;
+  textSize(100);
+  //loading_text = text('Loading...', 250, 250);
+  loading_text = createP('Loading...');
+  loading_text.position(vid_w+100, 0);
+  console.log('start')
+}
+
+function doneLoading() {
+  loading = false;
+  loading_text.remove();
+  console.log('stop')
+  //loading_text = text('', 250, 250);
+}
+
 
 class DeleteButton {
   constructor(f_n) {
