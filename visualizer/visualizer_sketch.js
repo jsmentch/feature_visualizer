@@ -1,6 +1,9 @@
 let vid = null; //video object
 let vid_loaded = false;
 
+let loading = false;
+let loading_text;
+
 let feat_selected = false;
 
 let f_id; // start on a dummy feature for now...
@@ -9,6 +12,7 @@ let f_folder = './assets/'
 let features = [];
 let feature_color = [];
 let feature_n = 0;
+let current_feature = 0; // feature to edit
 
 let instructions; //html text instrucitons
 
@@ -57,12 +61,6 @@ let feature_sr = 10; // sampling rate of feature, default to 10hz
 let offset = 0;  //25.5; // merlin movie started at 25.5 seconds..
 let duration_ratio;
 
-// list all of the csv files... do this with the api? node.js? a file with all of the names? 
-let feat_names = ['',
-'new_feature',
-'a_sub-19_task-MerlinMovie_events',
-'a_sub-22_task-MerlinMovie_events']
-
 let datasets;
 let ds_ind;
 let sel_ds;
@@ -106,7 +104,6 @@ function setup() { //initial splash screen setup
     ds_dict.create(datasets[ds_n].name, ds_n);
   }
   sel_ds.changed(dsSelect);
-
   sel_task = createSelect();
   sel_task.position(canvas_w, 125);
   sel_task.option('Select a task');
@@ -162,14 +159,6 @@ function setup2() { //after splash screen setup
   sel_run.hide();
   predictorlistLoad();
   addButtons();
-  //old method of loading feature from folder - don't delete yet
-  // sel = createSelect();
-  // sel.position(canvas_w, );
-  // for (let i = 0; i < feat_names.length; i++) {
-  //   sel.option(feat_names[i]);
-  // }
-  // sel.selected(f_id);
-  // sel.changed(featSelect);
   drawColumnLines();
   drawPanelLabels();
   drawAxisX();
@@ -197,24 +186,46 @@ function draw() {
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
     image(canvas4,0,0); //display grid
+    scrub();
+    monitorEdits();
+    setCurrentFeature();
   }
-  scrub();
-  monitorEdits();
 }
 
+function highlightFeature() {
+  //drawMetaData() {
+  let meta_h = 57 *(current_feature);
+  canvas3.stroke(255,255);
+  canvas3.fill(0,0)
+  canvas3.rect(vid_w+5,meta_h,220,55);
+}
+
+function setCurrentFeature() {
+  if (mouseX > vid_w && mouseX < canvas_w && mouseY <canvas_h){
+    for (let i = features.length-1; i >= 0 ; i--) {
+      let meta_h = 57 *i;
+      let meta_h2 = 57 *(i+1);
+      if (mouseIsPressed && mouseY > meta_h && mouseY < meta_h2){
+        current_feature = i;
+        redrawFeaturePanel();
+      }
+    }
+  }
+}
 function monitorEdits() {
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
     if (click_time >= 0 && click_time < dummy_duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
-        features[feature_n-1].editValue(click_time/dummy_duration_s, 1);// given time point and value to set
+        features[current_feature].editValue(click_time/dummy_duration_s, 1);// given time point and value to set
       }
       else if (keyIsDown(16)) {
-        features[feature_n-1].editValue(click_time/dummy_duration_s, 0);// given time point and value to set
+        features[current_feature].editValue(click_time/dummy_duration_s, 0);// given time point and value to set
       }
     }
   }
 }
+
 function addButtons() {
   button_load_feature = createFileInput(handleFeature);
   button_load_feature.position(canvas_w, 90);
@@ -264,7 +275,7 @@ function addButtons() {
 }
 //Keyboard Hotkeys
 function keyPressed() {
-  if (vid_loaded) {
+  if (vid_loaded && loading==false) {
     if (keyCode === 32) { //space
       toggleVid();
     }
@@ -307,7 +318,7 @@ function keyPressed() {
 }
 
 function exportFeature() { // export the current edited feature as a csv
-  features[feature_n-1].exportFeatureTable(input_export_name.value());
+  features[current_feature].exportFeatureTable(input_export_name.value());
 }
 
 function handleFeature(file) { //called when you select a feature to visualize
@@ -368,9 +379,8 @@ function dsSelect() { //called when you select a neuroscout dataset
   sel_run.hide();
 }
 function taskSelect() { //called when you select a neuroscout task
+  startLoading();
   task_id = task_dict.get(sel_task.value());
-  loading_text = createP('LOADING');
-  loading_text.position(canvas_w-100, 50);
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
 }
@@ -382,7 +392,7 @@ function runLoaded() { //after selecting a task, runs are loaded
   sel_run.selected('Select a run');
   let run_count = Object.keys(runs).length; 
   run_dict = new p5.TypedDict();
-  loading_text.remove();
+  doneLoading();
   for (let r_n = 0; r_n < run_count; r_n++) {
     sel_run.option(runs[r_n].id);
     run_dict.create(runs[r_n].id, runs[r_n].duration);
@@ -395,6 +405,7 @@ function runSelect(){ //called when a run is selected
   duration_s = run_dict.get(sel_run.value());
 }
 function predictorlistLoad(){
+  startLoading();
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
@@ -412,10 +423,11 @@ function predictorlistLoaded(){ //called when you load predictors for a selected
     predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
   }
   sel_predictor.changed(predictorSelect);
+  doneLoading();
 }
 function predictorSelect(){ //called when a predictor is selected
   predictor_id = predictor_dict.get(sel_predictor.value());
-  loading_text = createP('LOADING');
+  startLoading();
   let predictors_url = 'https://neuroscout.org/api/predictor-events?run_id='+run_id+'&predictor_id='+predictor_id+'&stimulus_timing=true'
   predictor_events = loadJSON(predictors_url, eventsLoaded)
   sel_run.hide();
@@ -437,7 +449,7 @@ function eventsLoaded(){ //called when predictor events are loaded
   feature_n = features.length;
   features.push(new Feature(f_id, feature_n, 2));
   delete_buttons.push(new DeleteButton(feature_n));
-  loading_text.remove();
+  doneLoading();
 }
 
 function drawColumnLines() {
@@ -487,12 +499,26 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   }
 }
 
+function startLoading() {
+  loading = true;
+  textSize(100);
+  //loading_text = text('Loading...', 250, 250);
+  loading_text = createP('Loading...');
+  loading_text.position(vid_w+100, 0);
+}
+
+function doneLoading() {
+  loading = false;
+  loading_text.remove();
+  //loading_text = text('', 250, 250);
+}
+
 class DeleteButton {
   constructor(f_n) {
     this.f_n = f_n;
     this.button = createButton('x')
     this.delete_w_l = vid_w+200;
-    this.delete_h_t = 12+57*(this.f_n+1);
+    this.delete_h_t = 14+57*(this.f_n+1);
     this.button.position(this.delete_w_l,this.delete_h_t);
     this.button.mousePressed(this.clicked);
   }
@@ -502,21 +528,25 @@ class DeleteButton {
 }
 
 function deleteFeature(feature2delete){
+  if (feature2delete <= current_feature){
+    current_feature--;
+  }
   features.splice(feature2delete,1);
   for (let i = delete_buttons.length-1; i >= 0 ; i--) {
     delete_buttons[i].button.remove();
   }
-  clearFeaturePanel();
+  redrawFeaturePanel();
+}
+
+function redrawFeaturePanel(){
+  canvas3.clear()
+  canvas2.clear()
   for (let i = features.length-1; i >= 0 ; i--) {
     features[i].setFeature_n(i);
     features[i].setupAfterTable();
     delete_buttons.push(new DeleteButton(i));
   }
-}
-
-function clearFeaturePanel(){
-  canvas3.clear()
-  canvas2.clear()
+  highlightFeature();
 }
 
 function scrub() {
@@ -774,13 +804,13 @@ class Feature {
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
-    canvas3.text("feature: "+String(this.f_id),vid_w+6,meta_h);
+    canvas3.text("feature: "+String(this.f_id),vid_w+8,meta_h);
     canvas3.textSize(12);
     canvas3.stroke(150);
     canvas3.fill(150);
-    canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+6,meta_h+13);
-    canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+6,meta_h+26);
-    canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+6,meta_h+39);
+    canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+8,meta_h+13);
+    canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+8,meta_h+26);
+    canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+8,meta_h+39);
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
