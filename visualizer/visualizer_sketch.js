@@ -188,7 +188,6 @@ function draw() {
     image(canvas4,0,0); //display grid
     scrub();
     monitorEdits();
-    setCurrentFeature();
   }
 }
 
@@ -200,18 +199,23 @@ function highlightFeature() {
   canvas3.rect(vid_w+5,meta_h,220,55);
 }
 
+function mousePressed() {
+  setCurrentFeature();
+}
+
 function setCurrentFeature() {
   if (mouseX > vid_w && mouseX < canvas_w && mouseY <canvas_h){
     for (let i = features.length-1; i >= 0 ; i--) {
       let meta_h = 57 *i;
       let meta_h2 = 57 *(i+1);
-      if (mouseIsPressed && mouseY > meta_h && mouseY < meta_h2){
+      if (mouseY > meta_h && mouseY < meta_h2){
         current_feature = i;
         redrawFeaturePanel();
       }
     }
   }
 }
+
 function monitorEdits() {
   if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
