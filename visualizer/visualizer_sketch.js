@@ -478,22 +478,30 @@ function eventsLoaded(){ //called when predictor events are loaded
 }
 
 function drawColumnLines() {
-  canvas4.stroke(75);
+  columnLine(column1_w+1,0,column1_w+1,canvas_h) //vertical line between vid and features
+  columnLine(0,canvas_h-1,column1_w,canvas_h-1) //horizontal line at bottom of timelines
+  columnLine(1,0,1,canvas_h) //vertical line at left of canvas
+  columnLine(0,1,column1_w,1) //horizontal line at top of canvas
+  columnLine(0,vid_h,vid_w,vid_h) //horizontal line below video canvas
+}
+
+function columnLine(line_x,line_y,line_xx,line_yy) {
+  canvas4.stroke(50);
   canvas4.strokeWeight(3);
-  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
-  canvas4.stroke(100);
+  canvas4.line(line_x,line_y,line_xx,line_yy);
+  canvas4.stroke(125);
   canvas4.strokeWeight(1);
-  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
+  canvas4.line(line_x,line_y,line_xx,line_yy);
 }
 
 function drawPanelLabels() {
+  canvas4.textSize(12);
   canvas4.fill(200)
-  canvas4.textSize(15);
-  canvas4.text("Coarse Timeline",2,vid_h-2);
-  canvas4.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas4.stroke(0);
   canvas4.strokeWeight(1);
   canvas4.fill(255);
+  canvas4.text("Coarse Timeline",5,vid_h+13);
+  canvas4.text("Fine Timeline",5,vid_h+slider_h+135);
 }
 
 function drawCurrentTime() {
@@ -505,10 +513,10 @@ function drawCurrentTime() {
   let time = duration_s*completion;
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
-  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
+  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 8, 29); 
   // add seconds elapsed
   textSize(10);
-  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
+  text('Seconds Elapsed' + ': ' + String(nf(time, 4,2))  , 9, 42);
 }
 function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   if (!playing){
@@ -667,7 +675,11 @@ function handleDummy() {
   vid = createVideo(['./assets/dummy.mp4'],dummyLoad);
   vid.position(0,0);
   vid.hide();
-  canvas3.text("Stimuli: Placeholder",3,12);
+  canvas3.stroke(0);
+  canvas3.strokeWeight(2);
+  canvas3.fill(255);
+  canvas3.textSize(10);
+  canvas3.text("Stimulus Video: Placeholder",9,55);
   hideSplash()
   setup2();
 }
@@ -686,7 +698,11 @@ function handleVideo(file) {
     vid = createVideo(file.data,vidLoad);
     vid.position(0,0);
     vid.hide();
-    canvas3.text("Stimuli: ".concat(file.name),3,12);
+    canvas3.stroke(0);
+    canvas3.strokeWeight(2);
+    canvas3.fill(255);
+    canvas3.textSize(10);
+    canvas3.text("Stimulus Video: ".concat(file.name),9,55);
     hideSplash()
     setup2();
   }
@@ -812,22 +828,25 @@ class Feature {
     }
     //drawMetaData() {
     let meta_h = 12+ 57 *(this.feature_n);
+    canvas3.strokeWeight(1);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
-    canvas3.text("feature: "+String(this.f_id),vid_w+8,meta_h);
+    canvas3.stroke(this.c);
+    canvas3.text(String(this.f_id),vid_w+8,meta_h);
     canvas3.textSize(12);
-    canvas3.stroke(150);
-    canvas3.fill(150);
+    canvas3.stroke(0);
+    canvas3.fill(200);
     canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+8,meta_h+13);
     canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+8,meta_h+26);
     canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+8,meta_h+39);
+    //draw feature name on bars
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
-    canvas3.translate(this.feature_n*30,vid_h-30)
+    canvas3.translate((this.feature_n*30),vid_h-30)
     canvas3.rotate(-PI/2);
-    canvas3.text(String(this.f_id),10,12);
+    canvas3.text(String(this.f_id),10,12+7);
     canvas3.rotate(PI/2);
     canvas3.translate(-this.feature_n*30,-vid_h+30);
     feat_selected = true; //the feature is selected and loaded, so draw it now
@@ -894,7 +913,7 @@ class Feature {
       current_val = map(current_val,min_feat,max_feat,0,100)
       stroke(this.c);
       fill(this.c);
-      rect(this.feature_n*30, vid_h-30, 20, -current_val);
+      rect((this.feature_n*30)+7, vid_h-30, 20, -current_val);
     }
   }
 }
