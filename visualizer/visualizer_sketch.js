@@ -186,8 +186,7 @@ function draw() {
     drawGraphicOverlay();
     image(canvas3,0,0); //display overlay canvas
     image(canvas4,0,0); //display grid
-    scrub();
-    monitorEdits();
+    checkMouseIsPressed();
   }
 }
 
@@ -216,8 +215,15 @@ function setCurrentFeature() {
   }
 }
 
+function checkMouseIsPressed() {
+  if (mouseIsPressed) {
+    monitorEdits();
+    scrub();
+  }
+}
+
 function monitorEdits() {
-  if (mouseIsPressed && editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
+  if (editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
     if (click_time >= 0 && click_time < dummy_duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
@@ -229,6 +235,21 @@ function monitorEdits() {
     }
   }
 }
+
+function scrub() {
+  //navigation in coarse window
+  if (!editing) { // if edit mode is off, do allow skipping
+    if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
+      vid.time((mouseX/column1_w) * vid.duration());
+    }
+    //navigation in fine window
+    else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+      let cur_t = vid.time();
+      vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
+    }
+  }
+}
+
 
 function addButtons() {
   button_load_feature = createFileInput(handleFeature);
@@ -553,19 +574,7 @@ function redrawFeaturePanel(){
   highlightFeature();
 }
 
-function scrub() {
-  //navigation in coarse window
-  if (!editing && mouseIsPressed) { // if edit mode is off, do allow skipping
-    if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
-      vid.time((mouseX/column1_w) * vid.duration());
-    }
-    //navigation in fine window
-    else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
-      let cur_t = vid.time();
-      vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
-    }
-  }
-}
+
 
 function toggleVid() {
   if (playing) {
