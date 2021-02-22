@@ -195,7 +195,7 @@ function highlightFeature() {
   let meta_h = 57 *(current_feature);
   canvas3.stroke(255,255);
   canvas3.fill(0,0)
-  canvas3.rect(vid_w+5,meta_h,220,55);
+  canvas3.rect(vid_w+5,meta_h,255,55);
 }
 
 function mousePressed() {
@@ -574,8 +574,6 @@ function redrawFeaturePanel(){
   highlightFeature();
 }
 
-
-
 function toggleVid() {
   if (playing) {
     vid.pause();
@@ -632,7 +630,7 @@ function drawAxisX(){
     canvas4.stroke(250);
     canvas4.strokeWeight(0.7);
     canvas4.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
-    for (let i=0; i < 11; i++) { 
+    for (let i=1; i < 10; i++) { 
       let xPos = (0 + (i*column1_w/10));
   //x ticks    
       canvas4.stroke(250);
@@ -868,9 +866,9 @@ class Feature {
         if (current_rowindex+i < 0 || current_rowindex+i+2 > this.f_tab.getRowCount() ) {
           continue;
         }
-        let px = map(completion+i, 0, 100, 0, column1_w);
+        let px = map(i, 0, 100, 0, column1_w);
         let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
-        let x = map(completion+i+1, 0, 100, 0, column1_w);
+        let x = map(i+1, 0, 100, 0, column1_w);
         let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
         line(px, py, x, y);
       }
