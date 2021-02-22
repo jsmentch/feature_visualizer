@@ -31,10 +31,11 @@ let canvas4; // highest level overlay
 //dimensions
 let column1_w = 640;
 let canvas_w = 900;
-let canvas_h = 600;
+let canvas_h = 600-6;
 let vid_w = 640;
 let vid_h = 360;
 let slider_h = 75;
+let fine_h = vid_h+95
 
 //plotting info
 let coarseness = 50; //rename window?
@@ -90,11 +91,18 @@ function preload() {
 }
 function setup() { //initial splash screen setup
   //console.log(datasets);
+  cnv = createCanvas(canvas_w, canvas_h); // create main canvas
+  cnv.position(52,53);
+  canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
+  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
+  canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
+  canvas3.clear();
+
   let dataset_count = Object.keys(datasets).length;
-  sel_ds_instructions = createP('FIRST: Select a neuroscout dataset.');
-  sel_ds_instructions.position(canvas_w, 50);
+  sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
+  sel_ds_instructions.position(150, 50);
   sel_ds = createSelect();
-  sel_ds.position(canvas_w, 100);
+  sel_ds.position(550, 65);
   sel_ds.option('Select a Dataset');
   sel_ds.selected('Select a Dataset');
   ds_dict = new p5.TypedDict();
@@ -104,47 +112,50 @@ function setup() { //initial splash screen setup
     ds_dict.create(datasets[ds_n].name, ds_n);
   }
   sel_ds.changed(dsSelect);
+
   sel_task = createSelect();
-  sel_task.position(canvas_w, 125);
+  sel_task.position(550, 90);
   sel_task.option('Select a task');
   sel_task.selected('Select a task');
-  sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 110);
-  sel_predictor.option('Select a predictor from Neuroscout');
-  sel_predictor.selected('Select a predictor from Neuroscout');
+
   sel_run = createSelect();
-  sel_run.position(canvas_w, 175);
+  sel_run.position(550,115);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
+
   sel_task.hide();
-  sel_predictor.hide();
   sel_run.hide();
 
-  createCanvas(canvas_w, canvas_h); // create main canvas
-  canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
-  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
-  canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
-  canvas3.clear();
-  // video load button
-  button_load_instructions = createP('NEXT: Select a local video file of the stimulus');
-  button_load_instructions.position(canvas_w, 350);
-  button_load = createFileInput(handleVideo);
-  button_load.position(canvas_w, 400);
+  offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
+  offset_set_instructions.position(167, 100);
+  offset_set_instructions2 = createP('<i>(e.g. how long after scan start did the movie start)</i>');// 
+  offset_set_instructions2.position(165, 120);
+  offset_input = createInput('');
+  offset_input.position(395, 115);
+  offset_input.size(25)
+  button_offset = createButton('set');
+  button_offset.position(offset_input.x + offset_input.width, 115);
+  button_offset.mousePressed(offset_set);
 
-  button_dummy_instructions = createP('OR: use a blank placeholder');
-  button_dummy_instructions.position(canvas_w, 450);
+  sel_predictor = createSelect();
+  sel_predictor.position(canvas_w+57, 175);
+  sel_predictor.option('Select a predictor from Neuroscout');
+  sel_predictor.selected('Select a predictor from Neuroscout');
+  sel_predictor.hide();
+
+  // video load button
+  button_load_instructions = createP('<b>2) Select a locally saved video file of the stimulus. --></b>');
+  button_load_instructions.position(150, 200);
+  button_load = createFileInput(handleVideo);
+  button_load.position(550, 215);
+
+  button_dummy_instructions = createP('OR: Use the Feature Explorer without video.');
+  button_dummy_instructions.position(167, 225);
   button_dummy = createButton('No Video');
-  button_dummy.position(canvas_w, 500);
+  button_dummy.position(550, 240);
   button_dummy.mousePressed(handleDummy); // attach button listener
 
-  offset_set_instructions = createP('enter an offset time (s) e.g. how long after the scan started did the movie start.');
-  offset_set_instructions.position(canvas_w, 550);
-  offset_input = createInput('');
-  offset_input.position(canvas_w, 600);
 
-  button_offset = createButton('submit');
-  button_offset.position(offset_input.x + offset_input.width, 600);
-  button_offset.mousePressed(offset_set);
 }
 
 function offset_set() {
@@ -192,10 +203,10 @@ function draw() {
 
 function highlightFeature() {
   //drawMetaData() {
-  let meta_h = 57 *(current_feature);
+  let meta_h = 25+ 57 *(current_feature);
   canvas3.stroke(255,255);
-  canvas3.fill(0,0)
-  canvas3.rect(vid_w+5,meta_h,220,55);
+  canvas3.fill(0,0,255,20)
+  canvas3.rect(vid_w+5,meta_h,252,54,3);
 }
 
 function mousePressed() {
@@ -205,8 +216,8 @@ function mousePressed() {
 function setCurrentFeature() {
   if (mouseX > vid_w && mouseX < canvas_w && mouseY <canvas_h){
     for (let i = features.length-1; i >= 0 ; i--) {
-      let meta_h = 57 *i;
-      let meta_h2 = 57 *(i+1);
+      let meta_h = 25+ 57 *i;
+      let meta_h2 = 25 + 57 *(i+1);
       if (mouseY > meta_h && mouseY < meta_h2){
         current_feature = i;
         redrawFeaturePanel();
@@ -252,50 +263,76 @@ function scrub() {
 
 
 function addButtons() {
+  //Instructions
+  instructions = createP('- Select predictors from Neuroscout or upload your own local .tsv files.');
+  instructions.position(55, canvas_h+50);
+  instructions2 = createP('- Navigate by clicking within the "coarse" and "fine" timelines below the video.');
+  instructions2.position(55, canvas_h+75);
+  instructions3 = createP("- With edit mode ON, select a loaded feature (right panel) to edit its values.");
+  instructions3.position(55, canvas_h+100);
+  edit_instructions = createP('- Click within the fine timeline to set points to 1. Shift-click to set points to 0.');
+  edit_instructions.position(55, canvas_h+125);
+  hotkeys = createP('<i>Hotkeys: spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 5s; U/D Arrow = volume</i>');
+  hotkeys.position(55, canvas_h+150);
+  // load feature tsv + instructions
+  button_load_feature_instructions1 = createP('<b>Feature Selection:</b>');
+  button_load_feature_instructions1.position(canvas_w+57, 42);
+  button_load_feature_instructions = createP('Or upload your own .tsv file.');
+  button_load_feature_instructions.position(canvas_w+57, 95);
   button_load_feature = createFileInput(handleFeature);
-  button_load_feature.position(canvas_w, 90);
-  button_load_feature_instructions = createP('(optional) Upload your own feature .tsv file');
-  button_load_feature_instructions.position(button_load_feature.x+button_load_feature.width, 70);
-
-  // video play button
-  button_play = createButton('play');
-  button_play.position(canvas_w,130);
+  button_load_feature.position(canvas_w+57, 133);
+  // video play
+  button_play = createButton('Play');
+  button_play.style('background-color', color(47, 222, 79));
+  button_play.position(60,canvas_h+24);
   button_play.mousePressed(toggleVid); // attach button listener
-
-  button = createButton('normal speed');
-  button.position(canvas_w, 150);
-  button.mousePressed(normal_speed);
-
-  button = createButton('2x speed');
-  button.position(canvas_w, 170);
-  button.mousePressed(twice_speed);
-
-  button = createButton('half speed');
-  button.position(canvas_w, 190);
-  button.mousePressed(half_speed);
-
-  button_mute = createButton('mute');
-  button_mute.position(canvas_w,210);
-  button_mute.mousePressed(mute_sound); // attach button listener
-
-  instructions = createP('First, load a local video stimulus file. Next, play and select features you would like to view from the pull-down list. Navigate by clicking within the timelines on the left');
-  instructions.position(canvas_w, 12);
-  
-  keycommands = createP('spacebar=play/pause; 1,2,3=change speed; m=mute; e=toggle editing; R/L arrow keys=skip +/- 10s; U/D Arrow = volume');
-  keycommands.position(canvas_w, 250);
-
+  //edit mode
   button_edit = createButton('Editing: OFF');
-  button_edit.position(canvas_w,290);
+  button_edit.position(118,canvas_h+24);
   button_edit.mousePressed(toggleEdit); // attach button listener
+  button_edit.style('background-color', color(176, 30, 30))
+  //sound
+  button_volup = createButton('Vol+');
+  button_volup.style('background-color', color(0))
+  button_volup.style("color", color(255));
 
-  edit_instructions = createP('When edit mode is ON, click within the fine timeline to set points to 1. Hold down "Shift" to set the points to 0.');
-  edit_instructions.position(canvas_w, 340);
+  button_volup.position(vid_w-95,canvas_h+24);
+  button_volup.mousePressed(volUp); // attach button listener
+  button_voldn = createButton('Vol-');
+  button_voldn.style('background-color', color(0))
+  button_voldn.style("color", color(255));
+  button_voldn.position(vid_w-55,canvas_h+24);
+  button_voldn.mousePressed(volDown); // attach button listener
+  button_mute = createButton('Mute');
+  button_mute.style('background-color', color(0))
+  button_mute.style("color", color(255));
+  button_mute.position(vid_w-18,canvas_h+24);
+  button_mute.mousePressed(mute_sound); // attach button listener
+  //speed
+  button = createButton('.5x');
+  button.position(vid_w-200,canvas_h+24);
+  button.mousePressed(half_speed);
+  button.style('background-color', color(0))
+  button.style("color", color(255));
+  button = createButton('1x');
+  button.position(vid_w-170,canvas_h+24);
+  button.mousePressed(normal_speed);
+  button.style('background-color', color(0))
+  button.style("color", color(255));
+  button = createButton('2x');
+  button.position(vid_w-140,canvas_h+24);
+  button.mousePressed(twice_speed);
+  button.style('background-color', color(0))
+  button.style("color", color(255));
+  //Feature Export
+  button_load_feature_instructions1 = createP('<b>Feature Export:</b>');
+  button_load_feature_instructions1.position(canvas_w+57, 210);
 
   input_export_name = createInput('edited_feature.tsv');
-  input_export_name.position(canvas_w, 390);
+  input_export_name.position(canvas_w+57, 250);
 
-  button_export_feature = createButton('export current feature');
-  button_export_feature.position(input_export_name.x + input_export_name.width, 390);
+  button_export_feature = createButton('Export Feature');
+  button_export_feature.position(input_export_name.x + input_export_name.width, 250);
   button_export_feature.mousePressed(exportFeature);
 }
 //Keyboard Hotkeys
@@ -330,15 +367,23 @@ function keyPressed() {
       }  
     }
     if (keyCode === 38) { //up arrow vol up
-      if (vid.volume()<0.91) {
-        vid.volume(vid.volume()+0.1);
-      }
+      volUp()
     }
     if (keyCode === 40) { //down arrow vol down
-      if (vid.volume()>0.1) {
-        vid.volume(vid.volume()-0.1);
-      }
+      volDown()
     }
+  }
+}
+
+function volUp() {
+  if (vid.volume()<0.91) {
+        vid.volume(vid.volume()+0.1);
+  }
+}
+
+function volDown() {
+  if (vid.volume()>0.1) {
+        vid.volume(vid.volume()-0.1);
   }
 }
 
@@ -391,7 +436,7 @@ function dsSelect() { //called when you select a neuroscout dataset
   let task_count = datasets[ds_ind].tasks.length; // # of tasks in the dataset
   sel_task.remove(); //destroy old task select object, make a new one
   sel_task = createSelect();
-  sel_task.position(canvas_w, 125);
+  sel_task.position(550, 90);
   sel_task.option('Select a task');
   sel_task.selected('Select a task');
   task_dict = new p5.TypedDict();
@@ -412,7 +457,7 @@ function taskSelect() { //called when you select a neuroscout task
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
   sel_run = createSelect();
-  sel_run.position(canvas_w, 150);
+  sel_run.position(550,115);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
   let run_count = Object.keys(runs).length; 
@@ -438,7 +483,7 @@ function predictorlistLoad(){
 function predictorlistLoaded(){ //called when you load predictors for a selected task
   sel_predictor.remove();
   sel_predictor = createSelect();
-  sel_predictor.position(canvas_w, 110);
+  sel_predictor.position(canvas_w+57, 80);
   sel_predictor.option('Select a predictor from Neuroscout');
   sel_predictor.selected('Select a predictor from Neuroscout');
   let predictor_count = Object.keys(predictors).length;
@@ -478,22 +523,37 @@ function eventsLoaded(){ //called when predictor events are loaded
 }
 
 function drawColumnLines() {
-  canvas4.stroke(75);
+  columnLine(column1_w+1,0,column1_w+1,canvas_h) //vertical line between vid and features
+  columnLine(0,1,canvas_w,1) //horizontal line at top of canvas
+  columnLine(0,canvas_h-1,canvas_w,canvas_h-1) //horizontal line at very bottom of canvas
+  columnLine(1,0,1,canvas_h) //vertical line at left of canvas
+  columnLine(canvas_w-1,0,canvas_w-1,canvas_h) //vertical line at right of canvas
+  columnLine(0,vid_h,vid_w,vid_h) //horizontal line below video canvas
+  columnLine(0, vid_h+slider_h, column1_w, vid_h+slider_h) //horizontal line below coarse timeline
+  columnLine(0,fine_h+102,vid_w,fine_h+102) //horizontal line below fine timeline
+  columnLine(column1_w/2, fine_h+100, column1_w/2, fine_h+100+8); //tick mark for fine timeline current time
+}
+
+function columnLine(line_x,line_y,line_xx,line_yy) {
+  canvas4.stroke(150);
   canvas4.strokeWeight(3);
-  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
-  canvas4.stroke(100);
+  canvas4.line(line_x,line_y,line_xx,line_yy);
+  canvas4.stroke(255);
   canvas4.strokeWeight(1);
-  canvas4.line(column1_w+3,0,column1_w+1,canvas_h);
+  canvas4.line(line_x,line_y,line_xx,line_yy);
 }
 
 function drawPanelLabels() {
+  canvas4.textSize(12);
   canvas4.fill(200)
-  canvas4.textSize(15);
-  canvas4.text("Coarse Timeline",2,vid_h-2);
-  canvas4.text("Fine Timeline",2,vid_h+slider_h+135);
   canvas4.stroke(0);
   canvas4.strokeWeight(1);
   canvas4.fill(255);
+  canvas4.text("Coarse Timeline",5,vid_h+13);
+  canvas4.text("Fine Timeline",5,fine_h+12);
+  canvas4.strokeWeight(2);
+  canvas4.textSize(18);
+  canvas4.text("Features:",vid_w+7,21);
 }
 
 function drawCurrentTime() {
@@ -505,10 +565,10 @@ function drawCurrentTime() {
   let time = duration_s*completion;
   let time_m = ~~(time / 60);
   let time_s = (time % 60);
-  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 3, 40); 
+  text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , 8, 29); 
   // add seconds elapsed
   textSize(10);
-  text('elapsed time (s)' + ': ' + String(nf(time, 4,2))  , 3, 60);
+  text('Seconds Elapsed' + ': ' + String(nf(time, 4,2))  , 9, 42);
 }
 function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   if (!playing){
@@ -519,6 +579,7 @@ function drawGraphicOverlay() { // draw pause sign and recording sign overlays
   }
   if (editing){
     stroke(0);
+    strokeWeight(2);
     fill(color('hsba(0, 100%, 100%, 0.5)'));
     ellipse(vid_w-50,vid_h-50,50,50);  //add a recording sign when editing
   }
@@ -542,8 +603,8 @@ class DeleteButton {
   constructor(f_n) {
     this.f_n = f_n;
     this.button = createButton('x')
-    this.delete_w_l = vid_w+200;
-    this.delete_h_t = 14+57*(this.f_n+1);
+    this.delete_w_l = vid_w+280;//canvas_w;
+    this.delete_h_t = 25+14+57*(this.f_n+1);
     this.button.position(this.delete_w_l,this.delete_h_t);
     this.button.mousePressed(this.clicked);
   }
@@ -574,15 +635,13 @@ function redrawFeaturePanel(){
   highlightFeature();
 }
 
-
-
 function toggleVid() {
   if (playing) {
     vid.pause();
-    button_play.html('play');
+    button_play.html('Play');
   } else {
     vid.play();
-    button_play.html('pause');
+    button_play.html('Pause');
   }
   playing = !playing;
 }
@@ -599,11 +658,11 @@ function toggleEdit() {
 function mute_sound() {
   if (muted) {
     vid.volume(1);
-    button_mute.html('mute');
+    button_mute.html('Mute');
     //ellipse(10,10,10,10);  //add a pause sign when paused
   } else {
     vid.volume(0);
-    button_mute.html('unmute');
+    button_mute.html('Unmute');
   }
   muted = !muted;
 }
@@ -628,16 +687,19 @@ function getCoarseVals(r){
 
 //draw axis labels to canvas4
 function drawAxisX(){
+  canvas4.stroke(255,0,0);
+  canvas4.fill(255,0,0);
+  canvas4.rect(column1_w/2, fine_h, 1, 100); //marker for sliding plot current time - aka slider 2
   if (duration_s > 0) {
-    canvas4.stroke(250);
-    canvas4.strokeWeight(0.7);
-    canvas4.line(0, vid_h+slider_h, column1_w, vid_h+slider_h); //x bar
-    for (let i=0; i < 11; i++) { 
+    canvas4.stroke(255);
+    canvas4.strokeWeight(1);
+    // canvas4.line(3, vid_h+slider_h, column1_w-1, vid_h+slider_h); //x bar
+    for (let i=1; i < 10; i++) { 
       let xPos = (0 + (i*column1_w/10));
   //x ticks    
-      canvas4.stroke(250);
-      canvas4.strokeWeight(0.7);
-      canvas4.line(xPos, vid_h+slider_h, xPos, vid_h+slider_h+5);
+      canvas4.stroke(255);
+      canvas4.strokeWeight(1);
+      canvas4.line(xPos+3, vid_h+slider_h, xPos+3, vid_h+slider_h+4);
   //x tick labels
       canvas4.textSize(10);
       canvas4.stroke(250);
@@ -645,10 +707,10 @@ function drawAxisX(){
       canvas4.fill(255);
       canvas4.textAlign(CENTER, CENTER);
       canvas4.translate(xPos,vid_h+slider_h+10);
-      canvas4.rotate(PI/6);
+      //canvas4.rotate(PI/6);
       cur_time = i*duration_s/10;
       canvas4.text(secondsToMinSec(cur_time),2,0);
-      canvas4.rotate(-PI/6);
+      //canvas4.rotate(-PI/6);
       canvas4.translate(-xPos,-vid_h-slider_h-10);
     }
   }
@@ -662,6 +724,7 @@ function hideSplash() {
   offset_input.hide();
   button_offset.hide();
   offset_set_instructions.hide();
+  offset_set_instructions2.hide();
 }
 
 function handleDummy() {
@@ -669,7 +732,11 @@ function handleDummy() {
   vid = createVideo(['./assets/dummy.mp4'],dummyLoad);
   vid.position(0,0);
   vid.hide();
-  canvas3.text("Stimuli: Placeholder",3,12);
+  canvas4.stroke(0);
+  canvas4.strokeWeight(2);
+  canvas4.fill(255);
+  canvas4.textSize(10);
+  canvas4.text("Stimulus Video: Placeholder",9,55);
   hideSplash()
   setup2();
 }
@@ -688,7 +755,11 @@ function handleVideo(file) {
     vid = createVideo(file.data,vidLoad);
     vid.position(0,0);
     vid.hide();
-    canvas3.text("Stimuli: ".concat(file.name),3,12);
+    canvas4.stroke(0);
+    canvas4.strokeWeight(2);
+    canvas4.fill(255);
+    canvas4.textSize(10);
+    canvas4.text("Stimulus Video: ".concat(file.name),9,55);
     hideSplash()
     setup2();
   }
@@ -813,23 +884,26 @@ class Feature {
       canvas2.line(px, py, x, y);
     }
     //drawMetaData() {
-    let meta_h = 12+ 57 *(this.feature_n);
+    let meta_h = 25+ 12+ 57 *(this.feature_n);
+    canvas3.strokeWeight(1);
     canvas3.stroke(this.c);
     canvas3.textSize(15);
     canvas3.fill(this.c);
-    canvas3.text("feature: "+String(this.f_id),vid_w+8,meta_h);
+    canvas3.stroke(this.c);
+    canvas3.text(String(this.f_id),vid_w+8,meta_h);
     canvas3.textSize(12);
-    canvas3.stroke(150);
-    canvas3.fill(150);
+    canvas3.stroke(0);
+    canvas3.fill(200);
     canvas3.text("feature min: "+String(nf(min_feat,1,2)),vid_w+8,meta_h+13);
     canvas3.text("feature max: "+String(nf(max_feat,1,2)),vid_w+8,meta_h+26);
     canvas3.text("stim duration (mm:ss): "+secondsToMinSec(duration_s),vid_w+8,meta_h+39);
+    //draw feature name on bars bar plots
     canvas3.textSize(10);
     canvas3.stroke(0);
     canvas3.fill(200);
-    canvas3.translate(this.feature_n*30,vid_h-30)
+    canvas3.translate((this.feature_n*30),vid_h-30)
     canvas3.rotate(-PI/2);
-    canvas3.text(String(this.f_id),10,12);
+    canvas3.text(String(this.f_id),-18,12+7);
     canvas3.rotate(PI/2);
     canvas3.translate(-this.feature_n*30,-vid_h+30);
     feat_selected = true; //the feature is selected and loaded, so draw it now
@@ -854,24 +928,28 @@ class Feature {
     }
     let current_rowindex = round(map(completion, 0, 1, 0, float(this.f_tab.getRowCount()))) - 50;
     //Add Current Time
-    stroke(50);
+    stroke(0);
     strokeWeight(2);
-    fill(75);
+    fill(255);
+    // stroke(50);
+    // strokeWeight(2);
+    // fill(50);
     textSize(25);
     let time = duration_s*completion;
     let time_m = ~~(time / 60);
     let time_s = (time % 60);
-    text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, vid_h+slider_h+150); 
+    text(String(nf(time_m, 2,0)) + ':' + String(nf(time_s, 2,2))  , vid_w/2-49, fine_h+130); 
+    strokeWeight(2);
     stroke(this.c);
     //if (current_rowindex > 50 && current_rowindex + 100 < this.f_tab.getRowCount()) {
       for (let i = 0; i < 100; i++) {
         if (current_rowindex+i < 0 || current_rowindex+i+2 > this.f_tab.getRowCount() ) {
           continue;
         }
-        let px = map(completion+i, 0, 100, 0, column1_w);
-        let py = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
-        let x = map(completion+i+1, 0, 100, 0, column1_w);
-        let y = vid_h+slider_h+120 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
+        let px = map(i, 0, 100, 0, column1_w);
+        let py = fine_h+100 - map(this.f_tab.getString(current_rowindex+i, 2), min_feat, max_feat, 0, 100);
+        let x = map(i+1, 0, 100, 0, column1_w);
+        let y = fine_h+100 - map(this.f_tab.getString(current_rowindex+i+1, 2), min_feat, max_feat, 0, 100);
         line(px, py, x, y);
       }
     //} 
@@ -885,7 +963,7 @@ class Feature {
     noStroke();
     fill(0,100,100);
     strokeWeight(1);
-    rect(column1_w/2, vid_h+slider_h+20, 1, 100); //marker for sliding plot current time
+    // rect(column1_w/2, vid_h+slider_h+20, 1, 100); //marker for sliding plot current time
     if (isNaN(completion)) {
       completion = 0;
     }
@@ -896,7 +974,7 @@ class Feature {
       current_val = map(current_val,min_feat,max_feat,0,100)
       stroke(this.c);
       fill(this.c);
-      rect(this.feature_n*30, vid_h-30, 20, -current_val);
+      rect((this.feature_n*30)+7, vid_h-5, 20, -current_val);
     }
   }
 }
