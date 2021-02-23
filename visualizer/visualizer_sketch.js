@@ -236,12 +236,12 @@ function checkMouseIsPressed() {
 function monitorEdits() {
   if (editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
-    if (click_time >= 0 && click_time < dummy_duration_s) {
+    if (click_time >= 0 && click_time < duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
-        features[current_feature].editValue(click_time/dummy_duration_s, 1);// given time point and value to set
+        features[current_feature].editValue(click_time/duration_s, 1);// given time point and value to set
       }
       else if (keyIsDown(16)) {
-        features[current_feature].editValue(click_time/dummy_duration_s, 0);// given time point and value to set
+        features[current_feature].editValue(click_time/duration_s, 0);// given time point and value to set
       }
     }
   }
@@ -742,9 +742,9 @@ function handleDummy() {
 }
 
 function dummyLoad() {
-  dummy_duration_s = vid.duration();
-  duration_ratio = dummy_duration_s/duration_s;
-  vid_speed = dummy_duration_s/duration_s; // if loading dummy vid, set new base video speed
+  duration_s = vid.duration();
+  duration_ratio = duration_s/duration_s;
+  vid_speed = duration_ratio; // if loading dummy vid, set new base video speed
   vid.speed(vid_speed);
   drawAxisX();
 }
@@ -767,6 +767,7 @@ function handleVideo(file) {
 
 function vidLoad() {
   vid_duration_s = vid.duration();
+  duration_ratio=1;
   vid_speed = 1;
   drawAxisX();
 }
