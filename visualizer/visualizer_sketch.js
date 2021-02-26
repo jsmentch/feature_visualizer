@@ -261,7 +261,6 @@ function scrub() {
   }
 }
 
-
 function addButtons() {
   //Instructions
   instructions = createP('- Select predictors from Neuroscout or upload your own local .tsv files.');
