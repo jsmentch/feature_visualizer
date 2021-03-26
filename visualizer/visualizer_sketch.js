@@ -91,11 +91,9 @@ function preload() {
   //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
   let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
   checkStatus()
-  console.log(neuroscout_up)
 }
 
 function setup() { //initial splash screen setup
-  //console.log(datasets);
   cnv = createCanvas(canvas_w, canvas_h); // create main canvas
   cnv.position(52,53);
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -487,14 +485,9 @@ function taskSelect() { //called when you select a neuroscout task
   runs = loadJSON(run_url, runLoaded);
 }
 
-function unique(array, propertyName) {
-   return array.filter((e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i);
-}
-
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
   let run_count = Object.keys(runs).length; 
-  console.log(runs);
   run_array = []
   for (let r_n = 0; r_n < run_count; r_n++) {
     run_array.push(runs[r_n]);
@@ -537,9 +530,7 @@ function predictorlistLoad(){
 }
 
 function onsetLoaded(){
-  console.log(onset_object)
   offset = onset_object[0].onset
-  console.log(offset);
 }
 
 function predictorlistLoaded(){ //called when you load predictors for a selected task
@@ -565,7 +556,6 @@ function predictorSelect(){ //called when a predictor is selected
   sel_run.hide();
 }
 function eventsLoaded(){ //called when predictor events are loaded
-  //console.log(predictor_events);
   let events_count = Object.keys(predictor_events).length;
   predictor_table = new p5.Table();
   predictor_table.addColumn("onset");
@@ -1018,8 +1008,7 @@ class Feature {
     //} 
   }
 
-  //make an overlaid bar of the instantaneous feature level
-  drawInstantaneous = () => {
+  drawInstantaneous = () => { //make an overlaid bar of the instantaneous feature level
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
@@ -1046,4 +1035,8 @@ function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
   var seconds = ((secondsin % 60)).toFixed(0);
   return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+function unique(array, propertyName) {
+   return array.filter((e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i);
 }
