@@ -62,6 +62,7 @@ let feature_sr = 10; // sampling rate of feature, default to 10hz
 let offset = 0;  //25.5; // merlin movie started at 25.5 seconds..
 let duration_ratio;
 
+let neuroscout_up;
 let datasets;
 let ds_ind;
 let sel_ds;
@@ -74,6 +75,8 @@ let predictor_id;
 let runs;
 let run_id;
 let predictor_events;
+let run_selected;
+let neuroscout_down_text;
 
 function preload() {
   //my table is comma separated value "csv"
@@ -87,8 +90,10 @@ function preload() {
   //test video
   //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
   let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
-  datasets = loadJSON(datasets_url)
+  checkStatus()
+  console.log(neuroscout_up)
 }
+
 function setup() { //initial splash screen setup
   //console.log(datasets);
   cnv = createCanvas(canvas_w, canvas_h); // create main canvas
@@ -97,34 +102,45 @@ function setup() { //initial splash screen setup
   canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
   canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
   canvas3.clear();
+  neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
+  neuroscout_down_text.position(150, 50);
+ 
+  if (neuroscout_up === true){
+    neuroscout_down_text.hide()
+    let dataset_count = Object.keys(datasets).length;
+    sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
+    sel_ds_instructions.position(150, 50);
+    sel_ds = createSelect();
+    sel_ds.position(550, 65);
+    sel_ds.option('Select a Dataset');
+    sel_ds.selected('Select a Dataset');
+    ds_dict = new p5.TypedDict();
 
-  let dataset_count = Object.keys(datasets).length;
-  sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
-  sel_ds_instructions.position(150, 50);
-  sel_ds = createSelect();
-  sel_ds.position(550, 65);
-  sel_ds.option('Select a Dataset');
-  sel_ds.selected('Select a Dataset');
-  ds_dict = new p5.TypedDict();
+    for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
+      sel_ds.option(datasets[ds_n].name);
+      ds_dict.create(datasets[ds_n].name, ds_n);
+    }
+    sel_ds.changed(dsSelect);
 
-  for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
-    sel_ds.option(datasets[ds_n].name);
-    ds_dict.create(datasets[ds_n].name, ds_n);
+    sel_task = createSelect();
+    sel_task.position(550, 90);
+    sel_task.option('Select a task');
+    sel_task.selected('Select a task');
+
+    sel_run = createSelect();
+    sel_run.position(550,115);
+    sel_run.option('Select a run');
+    sel_run.selected('Select a run');
+
+    sel_task.hide();
+    sel_run.hide();
+
+    sel_predictor = createSelect();
+    sel_predictor.position(canvas_w+57, 175);
+    sel_predictor.option('Select a predictor from Neuroscout');
+    sel_predictor.selected('Select a predictor from Neuroscout');
+    sel_predictor.hide();
   }
-  sel_ds.changed(dsSelect);
-
-  sel_task = createSelect();
-  sel_task.position(550, 90);
-  sel_task.option('Select a task');
-  sel_task.selected('Select a task');
-
-  sel_run = createSelect();
-  sel_run.position(550,115);
-  sel_run.option('Select a run');
-  sel_run.selected('Select a run');
-
-  sel_task.hide();
-  sel_run.hide();
 
   offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
   offset_set_instructions.position(167, 100);
@@ -136,12 +152,6 @@ function setup() { //initial splash screen setup
   button_offset = createButton('set');
   button_offset.position(offset_input.x + offset_input.width, 115);
   button_offset.mousePressed(offset_set);
-
-  sel_predictor = createSelect();
-  sel_predictor.position(canvas_w+57, 175);
-  sel_predictor.option('Select a predictor from Neuroscout');
-  sel_predictor.selected('Select a predictor from Neuroscout');
-  sel_predictor.hide();
 
   // video load button
   button_load_instructions = createP('<b>2) Select a locally saved video file of the stimulus. --></b>');
@@ -163,12 +173,17 @@ function offset_set() {
 }
 
 function setup2() { //after splash screen setup
-  sel_ds.hide();
-  sel_ds_instructions.hide();
-  sel_task.hide();
-  sel_predictor.hide();
-  sel_run.hide();
-  predictorlistLoad();
+  neuroscout_down_text.hide();
+  if(neuroscout_up===true){
+    sel_ds.hide();
+    sel_ds_instructions.hide();
+    sel_task.hide();
+    sel_predictor.hide();
+    sel_run.hide();
+  }
+  if (run_selected === true){
+    predictorlistLoad();
+  }
   addButtons();
   drawColumnLines();
   drawPanelLabels();
@@ -429,6 +444,24 @@ function featSelect() { //called when you select a feature to visualize
   }
 }
 
+function checkStatus(){
+  // Check Server/Website Is Online Or Offline Via Pure JavaScript
+  // Shared On www.exeideas.com
+  url = 'https://neuroscout.org/static/Neuroscout_Simple_Wide.svg';
+  img = new Image();
+  img.src = url;
+  img.onload = function(){
+    neuroscout_up = true;
+    console.log('neuroscout is up');
+    datasets = loadJSON(datasets_url)
+  }
+  img.onerror = function(){
+    neuroscout_up = false;
+    console.log('neuroscout is down');
+  }
+}
+
+
 //API STUFF
 function dsSelect() { //called when you select a neuroscout dataset
   ds_ind = ds_dict.get(sel_ds.value()); //ds index
@@ -489,13 +522,26 @@ function runLoaded() { //after selecting a task, runs are loaded
 function runSelect(){ //called when a run is selected
   run_id = run_dict.get(sel_run.value());
   duration_s = dur_dict.get(sel_run.value());
+  run_selected = true
 }
 function predictorlistLoad(){
   startLoading();
+
+  run_id = run_dict.get(sel_run.value());
+  let onset_url = 'https://neuroscout.org/api/runs/'+run_id+'/timing'
+  onset_object = loadJSON(onset_url, onsetLoaded)
+
   let predictors_url = 'https://neuroscout.org/api/predictors?run_id='+run_id+'&active_only=true&newest=true'
   predictors = loadJSON(predictors_url, predictorlistLoaded)
   sel_run.hide();
 }
+
+function onsetLoaded(){
+  console.log(onset_object)
+  offset = onset_object[0].onset
+  console.log(offset);
+}
+
 function predictorlistLoaded(){ //called when you load predictors for a selected task
   sel_predictor.remove();
   sel_predictor = createSelect();
