@@ -453,25 +453,42 @@ function taskSelect() { //called when you select a neuroscout task
   let run_url = 'https://neuroscout.org/api/runs?task_id='+task_id+'&dataset_id='+datasets[ds_ind].id;
   runs = loadJSON(run_url, runLoaded);
 }
+
+function unique(array, propertyName) {
+   return array.filter((e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i);
+}
+
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
+  let run_count = Object.keys(runs).length; 
+  console.log(runs);
+  run_array = []
+  for (let r_n = 0; r_n < run_count; r_n++) {
+    run_array.push(runs[r_n]);
+  }
+  runs_u = unique(run_array,'number');
   sel_run = createSelect();
   sel_run.position(550,115);
   sel_run.option('Select a run');
   sel_run.selected('Select a run');
-  let run_count = Object.keys(runs).length; 
-  run_dict = new p5.TypedDict();
-  doneLoading();
-  for (let r_n = 0; r_n < run_count; r_n++) {
-    sel_run.option(runs[r_n].id);
-    run_dict.create(runs[r_n].id, runs[r_n].duration);
+  run_dict = new p5.TypedDict(); //run_name -> run id
+  dur_dict = new p5.TypedDict(); //run_name -> run duration
+  for (let r_u = 0; r_u < runs_u.length; r_u++){
+    if ( str(runs_u[r_u].number) === 'null' ) {
+      run_name = runs_u[r_u].task_name;
+    } else {
+      run_name = runs_u[r_u].task_name+str(runs_u[r_u].number);
+    }
+    sel_run.option(str(run_name));
+    run_dict.create(run_name, runs_u[r_u].id);
+    dur_dict.create(run_name, runs_u[r_u].duration);
   }
+  doneLoading();
   sel_run.changed(runSelect);
-  //console.log(runs);
 }
 function runSelect(){ //called when a run is selected
-  run_id = sel_run.value();
-  duration_s = run_dict.get(sel_run.value());
+  run_id = run_dict.get(sel_run.value());
+  duration_s = dur_dict.get(sel_run.value());
 }
 function predictorlistLoad(){
   startLoading();
