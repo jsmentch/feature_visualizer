@@ -102,52 +102,6 @@ function preload() {
 }
 
 function setup() { //initial splash screen setup
-  // cnv = createCanvas(canvas_w, canvas_h); // create main canvas
-  // cnv.position(52,53);
-  // canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
-  // canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
-  // canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
-  // canvas3.clear();
-  // neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
-  // neuroscout_down_text.position(150, 50);
- 
-  // if (neuroscout_up === true){
-  //   neuroscout_down_text.hide()
-  //   let dataset_count = Object.keys(datasets).length;
-  //   sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
-  //   sel_ds_instructions.position(150, 50);
-  //   sel_ds = createSelect();
-  //   sel_ds.position(550, 65);
-  //   sel_ds.option('Select a Dataset');
-  //   sel_ds.selected('Select a Dataset');
-  //   ds_dict = new p5.TypedDict();
-
-  //   for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
-  //     sel_ds.option(datasets[ds_n].name);
-  //     ds_dict.create(datasets[ds_n].name, ds_n);
-  //   }
-  //   sel_ds.changed(dsSelect);
-
-  //   sel_task = createSelect();
-  //   sel_task.position(550, 90);
-  //   sel_task.option('Select a task');
-  //   sel_task.selected('Select a task');
-
-  //   sel_run = createSelect();
-  //   sel_run.position(550,115);
-  //   sel_run.option('Select a run');
-  //   sel_run.selected('Select a run');
-
-  //   sel_task.hide();
-  //   sel_run.hide();
-
-  //   sel_predictor = createSelect();
-  //   sel_predictor.position(canvas_w+57, 175);
-  //   sel_predictor.option('Select a predictor from Neuroscout');
-  //   sel_predictor.selected('Select a predictor from Neuroscout');
-  //   sel_predictor.hide();
-  // }
-
   offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
   offset_set_instructions.position(167, 100);
   offset_set_instructions2 = createP('<i>(e.g. how long after scan start did the movie start)</i>');// 
@@ -170,8 +124,6 @@ function setup() { //initial splash screen setup
   button_dummy = createButton('No Video');
   button_dummy.position(550, 240);
   button_dummy.mousePressed(handleDummy); // attach button listener
-
-
 }
 
 function neuroscout_up_setup(){
@@ -510,7 +462,6 @@ function checkStatus(){
 
 function load_datasets(){
 	datasets = loadJSON(datasets_url,datasets_loaded);
-    //neuroscout_up_setup();
 }
 
 function datasets_loaded(){
