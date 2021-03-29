@@ -102,6 +102,12 @@ function preload() {
 }
 
 function setup() { //initial splash screen setup
+cnv = createCanvas(canvas_w, canvas_h); // create main canvas
+  cnv.position(52,53);
+  canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
+  canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
+  canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
+  canvas3.clear();
   offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
   offset_set_instructions.position(167, 100);
   offset_set_instructions2 = createP('<i>(e.g. how long after scan start did the movie start)</i>');// 
