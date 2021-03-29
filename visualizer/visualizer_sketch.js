@@ -53,7 +53,7 @@ let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = 600; //stimulus duration in seconds - updated in setup()
+let duration_s = 60; //stimulus duration in seconds - updated in setup()
 let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
@@ -77,25 +77,12 @@ let run_id;
 let predictor_events;
 let run_selected;
 let neuroscout_down_text;
+let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
 
 function preload() {
-  //my table is comma separated value "csv"
-  //and has a header specifying the columns labels
-  //f_tab = loadTable('assets/'+f_id+'.csv', 'csv');
-  //vid = createVideo(['./assets/stimuli_Merlin.mp4']);
-  // OR
-  // load from openneuro - but breaks slider??
-  //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00003/files/stimuli:Merlin.mp4']);
-  //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
-  //test video
-  //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
-  let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
-  checkStatus()
-  console.log(neuroscout_up)
 }
 
 function setup() { //initial splash screen setup
-  //console.log(datasets);
   cnv = createCanvas(canvas_w, canvas_h); // create main canvas
   cnv.position(52,53);
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -104,8 +91,35 @@ function setup() { //initial splash screen setup
   canvas3.clear();
   neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
   neuroscout_down_text.position(150, 50);
- 
-  if (neuroscout_up === true){
+  if (neuroscout_up) {
+  	neuroscout_down_text.hide()
+  }
+  offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
+  offset_set_instructions.position(167, 100);
+  offset_set_instructions2 = createP('<i>(e.g. how long after scan start did the movie start)</i>');// 
+  offset_set_instructions2.position(165, 120);
+  offset_input = createInput('');
+  offset_input.position(395, 115);
+  offset_input.size(25)
+  button_offset = createButton('set');
+  button_offset.position(offset_input.x + offset_input.width, 115);
+  button_offset.mousePressed(offset_set);
+
+  // video load button
+  button_load_instructions = createP('<b>2) Select a locally saved video file of the stimulus. --></b>');
+  button_load_instructions.position(150, 200);
+  button_load = createFileInput(handleVideo);
+  button_load.position(550, 215);
+
+  button_dummy_instructions = createP('OR: Use the Feature Explorer without video.');
+  button_dummy_instructions.position(167, 225);
+  button_dummy = createButton('No Video');
+  button_dummy.position(550, 240);
+  button_dummy.mousePressed(handleDummy); // attach button listener
+  checkStatus();
+}
+
+function neuroscout_up_setup(){
     neuroscout_down_text.hide()
     let dataset_count = Object.keys(datasets).length;
     sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
@@ -140,33 +154,8 @@ function setup() { //initial splash screen setup
     sel_predictor.option('Select a predictor from Neuroscout');
     sel_predictor.selected('Select a predictor from Neuroscout');
     sel_predictor.hide();
-  }
-
-  offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
-  offset_set_instructions.position(167, 100);
-  offset_set_instructions2 = createP('<i>(e.g. how long after scan start did the movie start)</i>');// 
-  offset_set_instructions2.position(165, 120);
-  offset_input = createInput('');
-  offset_input.position(395, 115);
-  offset_input.size(25)
-  button_offset = createButton('set');
-  button_offset.position(offset_input.x + offset_input.width, 115);
-  button_offset.mousePressed(offset_set);
-
-  // video load button
-  button_load_instructions = createP('<b>2) Select a locally saved video file of the stimulus. --></b>');
-  button_load_instructions.position(150, 200);
-  button_load = createFileInput(handleVideo);
-  button_load.position(550, 215);
-
-  button_dummy_instructions = createP('OR: Use the Feature Explorer without video.');
-  button_dummy_instructions.position(167, 225);
-  button_dummy = createButton('No Video');
-  button_dummy.position(550, 240);
-  button_dummy.mousePressed(handleDummy); // attach button listener
-
-
 }
+
 
 function offset_set() {
   offset = offset_input.value();
@@ -453,7 +442,8 @@ function checkStatus(){
   img.onload = function(){
     neuroscout_up = true;
     console.log('neuroscout is up');
-    datasets = loadJSON(datasets_url)
+    //neuroscout_up_setup();
+    load_datasets();
   }
   img.onerror = function(){
     neuroscout_up = false;
@@ -461,6 +451,13 @@ function checkStatus(){
   }
 }
 
+function load_datasets(){
+	datasets = loadJSON(datasets_url,datasets_loaded);
+}
+
+function datasets_loaded(){
+	neuroscout_up_setup();
+}
 
 //API STUFF
 function dsSelect() { //called when you select a neuroscout dataset
@@ -487,14 +484,9 @@ function taskSelect() { //called when you select a neuroscout task
   runs = loadJSON(run_url, runLoaded);
 }
 
-function unique(array, propertyName) {
-   return array.filter((e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i);
-}
-
 function runLoaded() { //after selecting a task, runs are loaded
   sel_run.remove();
   let run_count = Object.keys(runs).length; 
-  console.log(runs);
   run_array = []
   for (let r_n = 0; r_n < run_count; r_n++) {
     run_array.push(runs[r_n]);
@@ -537,9 +529,7 @@ function predictorlistLoad(){
 }
 
 function onsetLoaded(){
-  console.log(onset_object)
   offset = onset_object[0].onset
-  console.log(offset);
 }
 
 function predictorlistLoaded(){ //called when you load predictors for a selected task
@@ -565,7 +555,6 @@ function predictorSelect(){ //called when a predictor is selected
   sel_run.hide();
 }
 function eventsLoaded(){ //called when predictor events are loaded
-  //console.log(predictor_events);
   let events_count = Object.keys(predictor_events).length;
   predictor_table = new p5.Table();
   predictor_table.addColumn("onset");
@@ -829,6 +818,7 @@ function handleVideo(file) {
 
 function vidLoad() {
   vid_duration_s = vid.duration();
+  duration_s = vid.duration();
   duration_ratio=1;
   vid_speed = 1;
   drawAxisX();
@@ -1018,8 +1008,7 @@ class Feature {
     //} 
   }
 
-  //make an overlaid bar of the instantaneous feature level
-  drawInstantaneous = () => {
+  drawInstantaneous = () => { //make an overlaid bar of the instantaneous feature level
     let feature_vals = this.f_tab.getColumn(2);
     let min_feat = min(feature_vals);
     let max_feat = max(feature_vals);
@@ -1046,4 +1035,8 @@ function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
   var seconds = ((secondsin % 60)).toFixed(0);
   return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+}
+
+function unique(array, propertyName) {
+   return array.filter((e, i) => array.findIndex(a => a[propertyName] === e[propertyName]) === i);
 }
