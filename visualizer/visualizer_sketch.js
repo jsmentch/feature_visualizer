@@ -77,6 +77,7 @@ let run_id;
 let predictor_events;
 let run_selected;
 let neuroscout_down_text;
+let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
 
 function preload() {
   //my table is comma separated value "csv"
@@ -89,11 +90,6 @@ function preload() {
   //vid = createVideo(['https://openneuro.org/crn/datasets/ds001110/snapshots/00002/files/stimuli:Sherlock.m4v']);
   //test video
   //vid = createVideo(['http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4']);  
-  let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
-  checkStatus()
-}
-
-function setup() { //initial splash screen setup
   cnv = createCanvas(canvas_w, canvas_h); // create main canvas
   cnv.position(52,53);
   canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
@@ -102,43 +98,55 @@ function setup() { //initial splash screen setup
   canvas3.clear();
   neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
   neuroscout_down_text.position(150, 50);
+  checkStatus()
+}
+
+function setup() { //initial splash screen setup
+  // cnv = createCanvas(canvas_w, canvas_h); // create main canvas
+  // cnv.position(52,53);
+  // canvas2 = createGraphics(canvas_w, canvas_h); //create renderer for coarse graph, background
+  // canvas3 = createGraphics(canvas_w, canvas_h); //create renderer for labels
+  // canvas4 = createGraphics(canvas_w, canvas_h); //create renderer for overlay, foreground
+  // canvas3.clear();
+  // neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
+  // neuroscout_down_text.position(150, 50);
  
-  if (neuroscout_up === true){
-    neuroscout_down_text.hide()
-    let dataset_count = Object.keys(datasets).length;
-    sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
-    sel_ds_instructions.position(150, 50);
-    sel_ds = createSelect();
-    sel_ds.position(550, 65);
-    sel_ds.option('Select a Dataset');
-    sel_ds.selected('Select a Dataset');
-    ds_dict = new p5.TypedDict();
+  // if (neuroscout_up === true){
+  //   neuroscout_down_text.hide()
+  //   let dataset_count = Object.keys(datasets).length;
+  //   sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
+  //   sel_ds_instructions.position(150, 50);
+  //   sel_ds = createSelect();
+  //   sel_ds.position(550, 65);
+  //   sel_ds.option('Select a Dataset');
+  //   sel_ds.selected('Select a Dataset');
+  //   ds_dict = new p5.TypedDict();
 
-    for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
-      sel_ds.option(datasets[ds_n].name);
-      ds_dict.create(datasets[ds_n].name, ds_n);
-    }
-    sel_ds.changed(dsSelect);
+  //   for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
+  //     sel_ds.option(datasets[ds_n].name);
+  //     ds_dict.create(datasets[ds_n].name, ds_n);
+  //   }
+  //   sel_ds.changed(dsSelect);
 
-    sel_task = createSelect();
-    sel_task.position(550, 90);
-    sel_task.option('Select a task');
-    sel_task.selected('Select a task');
+  //   sel_task = createSelect();
+  //   sel_task.position(550, 90);
+  //   sel_task.option('Select a task');
+  //   sel_task.selected('Select a task');
 
-    sel_run = createSelect();
-    sel_run.position(550,115);
-    sel_run.option('Select a run');
-    sel_run.selected('Select a run');
+  //   sel_run = createSelect();
+  //   sel_run.position(550,115);
+  //   sel_run.option('Select a run');
+  //   sel_run.selected('Select a run');
 
-    sel_task.hide();
-    sel_run.hide();
+  //   sel_task.hide();
+  //   sel_run.hide();
 
-    sel_predictor = createSelect();
-    sel_predictor.position(canvas_w+57, 175);
-    sel_predictor.option('Select a predictor from Neuroscout');
-    sel_predictor.selected('Select a predictor from Neuroscout');
-    sel_predictor.hide();
-  }
+  //   sel_predictor = createSelect();
+  //   sel_predictor.position(canvas_w+57, 175);
+  //   sel_predictor.option('Select a predictor from Neuroscout');
+  //   sel_predictor.selected('Select a predictor from Neuroscout');
+  //   sel_predictor.hide();
+  // }
 
   offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
   offset_set_instructions.position(167, 100);
@@ -165,6 +173,46 @@ function setup() { //initial splash screen setup
 
 
 }
+
+function neuroscout_up_setup(){
+	if (neuroscout_up === true){
+	    neuroscout_down_text.hide()
+	    let dataset_count = Object.keys(datasets).length;
+	    sel_ds_instructions = createP('<b>1) Select a dataset, task, and run from Neuroscout. --></b>');
+	    sel_ds_instructions.position(150, 50);
+	    sel_ds = createSelect();
+	    sel_ds.position(550, 65);
+	    sel_ds.option('Select a Dataset');
+	    sel_ds.selected('Select a Dataset');
+	    ds_dict = new p5.TypedDict();
+
+	    for (let ds_n = 0; ds_n < dataset_count; ds_n++) {
+	      sel_ds.option(datasets[ds_n].name);
+	      ds_dict.create(datasets[ds_n].name, ds_n);
+	    }
+	    sel_ds.changed(dsSelect);
+
+	    sel_task = createSelect();
+	    sel_task.position(550, 90);
+	    sel_task.option('Select a task');
+	    sel_task.selected('Select a task');
+
+	    sel_run = createSelect();
+	    sel_run.position(550,115);
+	    sel_run.option('Select a run');
+	    sel_run.selected('Select a run');
+
+	    sel_task.hide();
+	    sel_run.hide();
+
+	    sel_predictor = createSelect();
+	    sel_predictor.position(canvas_w+57, 175);
+	    sel_predictor.option('Select a predictor from Neuroscout');
+	    sel_predictor.selected('Select a predictor from Neuroscout');
+	    sel_predictor.hide();
+	}
+}
+
 
 function offset_set() {
   offset = offset_input.value();
@@ -451,7 +499,8 @@ function checkStatus(){
   img.onload = function(){
     neuroscout_up = true;
     console.log('neuroscout is up');
-    datasets = loadJSON(datasets_url)
+    //neuroscout_up_setup();
+    load_datasets();
   }
   img.onerror = function(){
     neuroscout_up = false;
@@ -459,6 +508,14 @@ function checkStatus(){
   }
 }
 
+function load_datasets(){
+	datasets = loadJSON(datasets_url,datasets_loaded);
+    //neuroscout_up_setup();
+}
+
+function datasets_loaded(){
+	neuroscout_up_setup();
+}
 
 //API STUFF
 function dsSelect() { //called when you select a neuroscout dataset
@@ -819,6 +876,7 @@ function handleVideo(file) {
 
 function vidLoad() {
   vid_duration_s = vid.duration();
+  duration_s = vid.duration();
   duration_ratio=1;
   vid_speed = 1;
   drawAxisX();
