@@ -53,7 +53,7 @@ let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = 600; //stimulus duration in seconds - updated in setup()
+let duration_s = 60; //stimulus duration in seconds - updated in setup()
 let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
