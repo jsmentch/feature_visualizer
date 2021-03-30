@@ -116,9 +116,22 @@ function setup() { //initial splash screen setup
   button_dummy = createButton('No Video');
   button_dummy.position(550, 240);
   button_dummy.mousePressed(handleDummy); // attach button listener
+
+  button_set_duration_instructions = createP('- Optional: if not selecting from neuroscout and not using a video file, set duration (s):');
+  button_set_duration_instructions.position(167, 275);
+  set_duration_input = createInput('');
+  set_duration_input.position(395, 310);
+  set_duration_input.size(25)
+  button_set_duration = createButton('set duration for No Video');
+  button_set_duration.position(offset_input.x + offset_input.width, 310);
+  button_set_duration.mousePressed(setDuration);
+
   checkStatus();
 }
 
+function setDuration(){
+  duration_s = set_duration_input.value();
+}
 function neuroscout_up_setup(){
     neuroscout_down_text.hide()
     let dataset_count = Object.keys(datasets).length;
@@ -791,6 +804,9 @@ function hideSplash() {
   button_offset.hide();
   offset_set_instructions.hide();
   offset_set_instructions2.hide();
+  button_set_duration_instructions.hide();
+  set_duration_input.hide();
+  button_set_duration.hide();
 }
 
 function handleDummy() {
