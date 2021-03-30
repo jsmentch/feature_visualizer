@@ -92,7 +92,7 @@ function setup() { //initial splash screen setup
   neuroscout_down_text = createP('<b style="color:rgb(100%,0%,0%);">1) Neuroscout is down, no access to API.</b>');
   neuroscout_down_text.position(150, 50);
   if (neuroscout_up) {
-  	neuroscout_down_text.hide()
+    neuroscout_down_text.hide()
   }
   offset_set_instructions = createP('- Optional: enter offset time (s) -->');// e.g. how long after the scan started did the movie start.
   offset_set_instructions.position(167, 100);
@@ -478,11 +478,11 @@ function checkStatus(){
 }
 
 function load_datasets(){
-	datasets = loadJSON(datasets_url,datasets_loaded);
+  datasets = loadJSON(datasets_url,datasets_loaded);
 }
 
 function datasets_loaded(){
-	neuroscout_up_setup();
+  neuroscout_up_setup();
 }
 
 //API STUFF
@@ -528,7 +528,7 @@ function runLoaded() { //after selecting a task, runs are loaded
     if ( str(runs_u[r_u].number) === 'null' ) {
       run_name = runs_u[r_u].task_name;
     } else {
-      run_name = runs_u[r_u].task_name+str(runs_u[r_u].number);
+      run_name = runs_u[r_u].task_name+str(runs_u[r_u].number)+', duration = '+str(secondsToMinSec( round(runs_u[r_u].duration)));
     }
     sel_run.option(str(run_name));
     run_dict.create(run_name, runs_u[r_u].id);
