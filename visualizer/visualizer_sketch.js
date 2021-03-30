@@ -528,7 +528,7 @@ function runLoaded() { //after selecting a task, runs are loaded
     if ( str(runs_u[r_u].number) === 'null' ) {
       run_name = runs_u[r_u].task_name;
     } else {
-      run_name = runs_u[r_u].task_name+str(runs_u[r_u].number);
+      run_name = runs_u[r_u].task_name+str(runs_u[r_u].number)+', duration = '+str(secondsToMinSec(round(runs_u[r_u].duration)));
     }
     sel_run.option(str(run_name));
     run_dict.create(run_name, runs_u[r_u].id);
