@@ -53,7 +53,7 @@ let playing = false;
 let editing = false
 let muted = false;
 let completion = 0;
-let duration_s = 60; //stimulus duration in seconds - updated in setup()
+let duration_s = 600; //stimulus duration in seconds - updated in setup()
 let vid_duration_s; //loaded video duration in seconds
 let time = 0; //movie time
 let time_m; //time ms for printing time
@@ -78,7 +78,7 @@ let predictor_events;
 let run_selected;
 let neuroscout_down_text;
 let datasets_url = 'https://neuroscout.org/api/datasets?active_only=true'
-
+let manual_offset=false;
 function preload() {
 }
 
@@ -159,6 +159,7 @@ function neuroscout_up_setup(){
 
 function offset_set() {
   offset = offset_input.value();
+  manual_offset=true;
 }
 
 function setup2() { //after splash screen setup
@@ -176,7 +177,7 @@ function setup2() { //after splash screen setup
   addButtons();
   drawColumnLines();
   drawPanelLabels();
-  drawAxisX();
+  console.log(offset);
 }
 
 function draw() {
@@ -284,6 +285,10 @@ function addButtons() {
   button_load_feature_instructions.position(canvas_w+57, 95);
   button_load_feature = createFileInput(handleFeature);
   button_load_feature.position(canvas_w+57, 133);
+  // load a dummy feature
+  button_dummy_feature = createButton('Add new empty feature');
+  button_dummy_feature.position(canvas_w+57, 160);
+  button_dummy_feature.mousePressed(addDummyFeature);
   // video play
   button_play = createButton('Play');
   button_play.style('background-color', color(47, 222, 79));
@@ -433,6 +438,14 @@ function featSelect() { //called when you select a feature to visualize
   }
 }
 
+function addDummyFeature() { //called when you select a feature to visualize
+  f_id = 'new';
+  feature_n = features.length;
+  features.push(new Feature(f_id, feature_n,3));
+  // console.log(features)
+  // features[feature_n-1].makeDummyFeature();
+}
+
 function checkStatus(){
   // Check Server/Website Is Online Or Offline Via Pure JavaScript
   // Shared On www.exeideas.com
@@ -529,7 +542,9 @@ function predictorlistLoad(){
 }
 
 function onsetLoaded(){
-  offset = onset_object[0].onset
+  if (manual_offset === false){
+    offset = onset_object[0].onset;
+  }
 }
 
 function predictorlistLoaded(){ //called when you load predictors for a selected task
@@ -841,6 +856,9 @@ class Feature {
     else if (this.type == 2) {
       this.loadInfoFromNS();
     }
+    else if (this.type == 3) {
+      this.makeDummyFeature();
+    }
   }
   setFeature_n(feature_n_new){
     this.feature_n=feature_n_new;
@@ -866,6 +884,10 @@ class Feature {
       newRow.setString("value",0);
     }
     this.f_tab = table;
+  }
+  makeDummyFeature(){
+    this.createNewFeature();
+    this.setupAfterTable();
   }
   loadInfoFromFile(data){
     this.createNewFeature(); //make a new blank table at given sr and duration
