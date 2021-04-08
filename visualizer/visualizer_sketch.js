@@ -569,8 +569,10 @@ function predictorlistLoaded(){ //called when you load predictors for a selected
   let predictor_count = Object.keys(predictors).length;
   predictor_dict = new p5.TypedDict();
   for (let p_n = 0; p_n < predictor_count; p_n++) {
-    sel_predictor.option(predictors[p_n].name);
-    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
+    if (predictors[p_n].source !== 'fmriprep') {
+	    sel_predictor.option(predictors[p_n].name);
+	    predictor_dict.create(predictors[p_n].name, predictors[p_n].id);
+	}
   }
   sel_predictor.changed(predictorSelect);
   doneLoading();
