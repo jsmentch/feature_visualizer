@@ -1008,7 +1008,13 @@ class Feature {
   } 
   //export edited table to csv
   exportFeatureTable = (input_export_name) => {
-    saveTable(this.f_tab, input_export_name, "tsv")
+    for (let r = 1; r < this.f_tab.getRowCount(); r++) {
+      this.f_tab.set(r,0,this.f_tab.getNum(r,0)+offset); // re-add offset
+    }
+    saveTable(this.f_tab, input_export_name, "tsv") // exported
+    for (let r = 1; r < this.f_tab.getRowCount(); r++) {
+      this.f_tab.set(r,0,this.f_tab.getNum(r,0)-offset); // re-subtract offset
+    }
   }
 
   drawFeatureSliding = () => {
