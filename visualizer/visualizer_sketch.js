@@ -190,7 +190,6 @@ function setup2() { //after splash screen setup
   addButtons();
   drawColumnLines();
   drawPanelLabels();
-  console.log(offset);
 }
 
 function draw() {
@@ -557,6 +556,7 @@ function predictorlistLoad(){
 function onsetLoaded(){
   if (manual_offset === false){
     offset = onset_object[0].onset;
+    console.log(offset);
   }
 }
 
