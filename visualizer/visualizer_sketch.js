@@ -1,5 +1,8 @@
 let vid = null; //video object
 let vid_loaded = false;
+var audio = null; //audio object
+let audio_loaded = false;
+let jump_time=0.1;
 
 let loading = false;
 let loading_text;
@@ -274,6 +277,19 @@ function scrub() {
     else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
       let cur_t = vid.time();
       vid.time(cur_t+map((mouseX/column1_w),0,1,-1,1));
+    }
+    if (audio_loaded) {
+      if (mouseX < vid_w && mouseY > vid_h && mouseY < vid_h+slider_h){
+      audio.jump((mouseX/column1_w) * vid.duration());
+      }
+      //navigation in fine window
+      else if (mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120){
+        let cur_t = vid.time();
+        jump_time=cur_t+map((mouseX/column1_w),0,1,-1,1);
+        if (jump_time > 0 && jump_time < vid.duration()) {
+          audio.jump(jump_amount);
+        }
+      }
     }
   }
 }
@@ -724,6 +740,14 @@ function toggleVid() {
     vid.play();
     button_play.html('Pause');
   }
+  if (audio_loaded) {
+    if (playing) {
+      audio.pause();
+    } else {
+      audio.play();
+      button_play.html('Pause');
+    }
+  }
   playing = !playing;
 }
 
@@ -745,16 +769,33 @@ function mute_sound() {
     vid.volume(0);
     button_mute.html('Unmute');
   }
+  if (audio_loaded) {
+    if (muted) {
+      audio.volume(1);
+      //ellipse(10,10,10,10);  //add a pause sign when paused
+    } else {
+      audio.volume(0);
+    }
+  }
   muted = !muted;
 }
 function normal_speed() {
   vid.speed(vid_speed);
+  if (audio_loaded) {
+    audio.rate(1);
+  }
 }
 function twice_speed() {
   vid.speed(vid_speed*2);
+  if (audio_loaded) {
+    audio.rate(2)
+  }
 }
 function half_speed() {
   vid.speed(vid_speed*0.5);
+  if (audio_loaded) {
+    audio.rate(0.5)
+  }
 }
 
 function getCoarseVals(r){
@@ -846,6 +887,8 @@ function handleVideo(file) {
     canvas4.text("Stimulus Video: ".concat(file.name),9,55);
     hideSplash()
     setup2();
+  } else if(file.type === 'audio') {
+      audio = loadSound(file,soundLoad);
   }
 }
 
@@ -855,6 +898,12 @@ function vidLoad() {
   duration_ratio=1;
   vid_speed = 1;
   drawAxisX();
+}
+
+function soundLoad() {
+  duration_s=audio.duration();
+  audio_loaded = true;
+  handleDummy();
 }
 
 class Feature {
