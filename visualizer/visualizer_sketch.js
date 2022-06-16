@@ -477,7 +477,7 @@ function addDummyFeature() { //called when you select a feature to visualize
 function checkStatus(){
   // Check Server/Website Is Online Or Offline Via Pure JavaScript
   // Shared On www.exeideas.com
-  url = 'https://neuroscout.org/static/Neuroscout_Simple_Wide.svg';
+  url = 'https://neuroscout.org/static/neuroscout_simpler_dark_blue_medium.svg';
   img = new Image();
   img.src = url;
   img.onload = function(){
