@@ -256,7 +256,7 @@ function checkMouseIsPressed() {
 function monitorEdits() {
   if (editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
-    if (click_time >= 0 && click_time < vid_duration_s) {
+    if (click_time >= 0 && round(click_time,1) < vid_duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
         features[current_feature].editValue(click_time/vid_duration_s, 1);// given time point and value to set
       }
@@ -1020,9 +1020,9 @@ class Feature {
     canvas2.strokeWeight(1);
     for (let r = 1; r < this.f_tab.getRowCount(); r++) {
       let px = map(r-1, 0, this.f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
-      let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
+      let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 72); //map y feature val from min max to px y
       let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
-      let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
+      let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 72);
       canvas2.line(px, py, x, y);
     }
     //drawMetaData() {
