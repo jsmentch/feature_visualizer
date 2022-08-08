@@ -1020,9 +1020,9 @@ class Feature {
     canvas2.strokeWeight(1);
     for (let r = 1; r < this.f_tab.getRowCount(); r++) {
       let px = map(r-1, 0, this.f_tab.getRowCount(), 0, column1_w); //map x time from s to px x
-      let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 74); //map y feature val from min max to px y
+      let py = vid_h+slider_h - map(this.f_tab.getString(r-1, 2), min_feat, max_feat, 0, 72); //map y feature val from min max to px y
       let x = map(r, 0, this.f_tab.getRowCount(), 0, column1_w);
-      let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 74);
+      let y = vid_h+slider_h - map(this.f_tab.getString(r, 2), min_feat, max_feat, 0, 72);
       canvas2.line(px, py, x, y);
     }
     //drawMetaData() {
