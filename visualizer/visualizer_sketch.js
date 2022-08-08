@@ -256,7 +256,7 @@ function checkMouseIsPressed() {
 function monitorEdits() {
   if (editing && mouseX < vid_w && mouseY > vid_h+slider_h && mouseY < vid_h+slider_h+120) { //if EDITING mode is on and mouse is held down within the fine timeline
     let click_time = vid.time()+map((mouseX/column1_w),0,1,-5*duration_ratio,5*duration_ratio); //get time point to edit from mouse location
-    if (click_time >= 0 && click_time < vid_duration_s) {
+    if (click_time >= 0 && round(click_time,1) < vid_duration_s) {
       if (!keyIsDown(16)) { // if SHIFT is held down, set value to 0, otherwise 1
         features[current_feature].editValue(click_time/vid_duration_s, 1);// given time point and value to set
       }
