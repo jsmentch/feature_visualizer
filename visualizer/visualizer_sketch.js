@@ -1126,6 +1126,12 @@ class Feature {
   }
 }
 
+//make it so that there is a warning before navigating away from the page and you do not lose progress!
+window.onbeforeunload = () => {
+  return "";
+};
+
+
 function secondsToMinSec(secondsin) {
   var minutes = Math.floor(secondsin / 60);
   var seconds = ((secondsin % 60)).toFixed(0);
