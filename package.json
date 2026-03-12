@@ -16,7 +16,5 @@
     "url": "https://github.com/jsmentch/feature_auditor/issues"
   },
   "homepage": "https://github.com/jsmentch/feature_auditor#readme",
-  "dependencies": {
-    "file-system": "^2.2.2"
-  }
+  "dependencies": {}
 }
